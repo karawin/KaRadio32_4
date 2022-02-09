@@ -1,6 +1,9 @@
 ## STATE
 Release 2.2 R1 Stable
 
+Verson adapted to ESP_IDF 4.4
+Work in progress, do not use.
+
 Works on any esp32 board.  
 See the boards directory for a list of pre-configured boards.  
 See : [Hardware configuration partition](HardwareConfig.md)
