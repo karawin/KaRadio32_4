@@ -1,7 +1,8 @@
 /*
  * Copyright 2016 karawin (http://www.karawin.fr)
 */
-#define TAG "webclient"
+#define TAG "webclient" 
+
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
 #include "webclient.h"
@@ -14,7 +15,7 @@
 #include "freertos/semphr.h"
 
 /* wolfSSL */
-//#include "wolfssl/wolfcrypt/settings.h"
+#include "wolfssl/wolfcrypt/settings.h"
 #include "user_settings.h"
 #include "wolfssl/ssl.h"
 #include "wolfssl/certs_test.h"
@@ -478,20 +479,21 @@ static void clientSaveMetadata(char* s,int len)
 {
 	char* t_end = NULL;
 	char* t ;
+	int ilen ;
 	bool found = false;
-	if ((len == 0)||(s==NULL)) ESP_LOGV(TAG,"clientSaveMetadata:  len:%d",len);
 	if ((len > 256) ||(s == NULL) || (len == 0)) // if not valid
 	{
 		if (header.members.mArr[METADATA] != NULL)
 		incfree(header.members.mArr[METADATA],"metad");  // clear the old one
 		header.members.mArr[METADATA] = NULL;  // and exit
+		ESP_LOGV(TAG,"clientSaveMetadata:  len:%d",len);
 		return;
 	}
-
+	ilen = len;
 	//remove all but title
 	t = s;
-	len = strlen(t);
-	ESP_LOGV(TAG,"clientSaveMetadata:  len:%d   char:%s",len,s);
+	ilen = strlen(t);
+	ESP_LOGV(TAG,"clientSaveMetadata:  len:%d ilen:%d  char:%s",len,ilen,s);
 	t_end = strstr(t,"song_spot=");
 	if (t_end != NULL)
 	{
@@ -509,14 +511,27 @@ static void clientSaveMetadata(char* s,int len)
 		}
 	}
 	t = strstr(t,"StreamTitle='");
-	if (t!= NULL) {t += 13;found = true;} else t = s;
-	len = strlen(t);
-	if ((t_end != NULL)&&(len >=3)) t_end -= 3;
+	if (t!= NULL) 
+	{
+		t += 13;found = true;
+		len -=13;
+	} 
+	else { 
+		t = s;
+	}
+	ilen = strlen(t) ;
+	if (ilen > len)
+	{
+		ESP_LOGD(TAG,"clientSaveMetadata:  bug len:%d ilen:%d  char:%s",len,ilen,s);
+		ilen = len;
+		t[len+1]=0;
+	}
+	if ((t_end != NULL)&&(ilen >=3)) t_end -= 3;
 	else {
 		if (t_end != NULL) t_end -=1;
 		else
-		if (len >=2) {t_end = t+len-2;found = true;}
-		else t_end = t+len;
+		if (ilen >=2) {t_end = t+ilen-2;found = true;}
+		else t_end = t+ilen;
 	}
 	if (found)
 	{
@@ -532,25 +547,25 @@ static void clientSaveMetadata(char* s,int len)
 	}
 	else
 	{
-		if (len >=2) len-=2;
+		if (ilen >=2) ilen-=2;
 	}
 	// the expurged str
-	ESP_LOGV(TAG,"clientSaveMetadata0:  len:%d   char:%s",strlen(t),t);
-
+	ESP_LOGD(TAG,"clientSaveMetadata0:  len:%d   char:%s",strlen(t),t);
+	ilen = strlen(t) ;
 // see if meta is != of the old one
 	char* tt;
-	tt = incmalloc((len+5)*sizeof(char));
+	tt = incmalloc((ilen+5)*sizeof(char));
 	if (tt != NULL)
 	{
 		strcpy(tt,t);
-		tt = stringify(tt,len); // to compare we need to stringify
+		tt = stringify(tt,ilen); // to compare we need to stringify
 	}
 	if  ((header.members.mArr[METADATA] == NULL)||
 		((header.members.mArr[METADATA] != NULL)&&(t!= NULL)&&(strcmp(tt,header.members.mArr[METADATA]) != 0)))
 	{
 		if (header.members.mArr[METADATA] != NULL)
 			incfree(header.members.mArr[METADATA],"metad"); //clear the old one
-		header.members.mArr[METADATA] = (char*)incmalloc((len+3)*sizeof(char));
+		header.members.mArr[METADATA] = (char*)incmalloc((ilen+3)*sizeof(char));
 		if(header.members.mArr[METADATA] == NULL)
 		{	ESP_LOGV(TAG,strcMALLOC1,"metad");
 			return;
@@ -579,9 +594,9 @@ static void clientSaveMetadata(char* s,int len)
 		if (title != NULL) // broadcast to all websockets
 		{
 			sprintf(title,"{\"meta\":\"%s\"}",t_end);
-			int len;
-			title = pseudoUtf8(title,&len);
-			websocketbroadcast(title, len);
+			int blen;
+			title = pseudoUtf8(title,&blen);
+			websocketbroadcast(title, blen);
 			incfree(title,"title");
 		} else ESP_LOGV(TAG,strcMALLOC1,"Title");
 	}
@@ -992,8 +1007,8 @@ void clientReceiveCallback(int sockfd, char *pdata, int len)
 	static int metad ;
 	static int rest ;
 	static uint16_t dloop;
-	static uint32_t chunked;
-	static uint32_t cchunk;
+	static IRAM_ATTR  uint32_t chunked;
+	static IRAM_ATTR  uint32_t cchunk;
 	static char* metadata = NULL;
 	uint16_t l =0;
 	uint32_t lc;

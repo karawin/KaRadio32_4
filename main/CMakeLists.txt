@@ -27,14 +27,12 @@ set(COMPONENT_SRCS
 )
 
 set(COMPONENT_ADD_INCLUDEDIRS 
-
 	"./include/"
 	"C:/Espressif/frameworks/esp-idf-v4.4/components/freertos/include/freertos/"
 	PRIV_REQUIRES wolfssl
 )
 
 register_component()
-
 component_compile_options(-Wno-error=unused-label -Wno-error=return-type -Wno-error=missing-braces 
 -Wno-error=pointer-sign -Wno-error=parentheses -Wno-error=maybe-uninitialized -DWOLFSSL_USER_SETTINGS -DWOLFSSL_STATIC_RSA )
 

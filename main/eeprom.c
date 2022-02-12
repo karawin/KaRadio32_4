@@ -37,11 +37,11 @@ struct device_settings* g_device;
 
 void partitions_init(void)
 {
-	DEVICE = esp_partition_find_first(64,6,NULL);
+	DEVICE = esp_partition_find_first(64,0,NULL);
 	if (DEVICE == NULL) ESP_LOGE(TAG, "DEVICE Partition not found");
-	DEVICE1 = esp_partition_find_first(66,6,NULL);
+	DEVICE1 = esp_partition_find_first(66,0,NULL);
 	if (DEVICE1 == NULL) ESP_LOGE(TAG, "DEVICE1 Partition not found");
-	STATIONS = esp_partition_find_first(65,6,NULL);
+	STATIONS = esp_partition_find_first(65,0,NULL);
 	if (STATIONS == NULL) ESP_LOGE(TAG, "STATIONS Partition not found");
 	muxDevice=xSemaphoreCreateMutex();
 	g_device = getDeviceSettings();  // allocate one time for all
