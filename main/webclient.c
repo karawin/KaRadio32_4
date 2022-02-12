@@ -14,7 +14,7 @@
 #include "freertos/semphr.h"
 
 /* wolfSSL */
-#include "wolfssl/wolfcrypt/settings.h"
+//#include "wolfssl/wolfcrypt/settings.h"
 #include "user_settings.h"
 #include "wolfssl/ssl.h"
 #include "wolfssl/certs_test.h"
@@ -992,8 +992,8 @@ void clientReceiveCallback(int sockfd, char *pdata, int len)
 	static int metad ;
 	static int rest ;
 	static uint16_t dloop;
-	static IRAM_ATTR  uint32_t chunked;
-	static IRAM_ATTR  uint32_t cchunk;
+	static uint32_t chunked;
+	static uint32_t cchunk;
 	static char* metadata = NULL;
 	uint16_t l =0;
 	uint32_t lc;

@@ -21,8 +21,9 @@
 #include "common_buffer.h"
 #include "aacdecoder_lib.h"
 #include "audio_player.h"
+#include "audio_renderer.h"
 //#include "spiram_fifo.h"
-#include "gpio.h"
+//#include "gpio.h"
 //#include "m4a.h"
 
 

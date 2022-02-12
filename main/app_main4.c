@@ -130,10 +130,10 @@ IRAM_ATTR void interrupt1Ms() {timer_enable_intr(TIMERGROUP1MS, msTimer);}
 //IRAM_ATTR void noInterrupts() {noInterrupt1Ms();}
 //IRAM_ATTR void interrupts() {interrupt1Ms();}
 
-IRAM_ATTR char* getIp() {return (localIp);}
-IRAM_ATTR uint8_t getIvol() {return clientIvol;}
-IRAM_ATTR void setIvol( uint8_t vol) {clientIvol = vol;}; //ctimeVol = 0;}
-IRAM_ATTR output_mode_t get_audio_output_mode() { return audio_output_mode;}
+char* getIp() {return (localIp);}
+uint8_t getIvol() {return clientIvol;}
+void setIvol( uint8_t vol) {clientIvol = vol;}; //ctimeVol = 0;}
+output_mode_t get_audio_output_mode() { return audio_output_mode;}
 
 /*
 IRAM_ATTR void   microsCallback(void *pArg) {
@@ -148,10 +148,10 @@ IRAM_ATTR void   microsCallback(void *pArg) {
 	TIMERG1.hw_timer[timer_idx].config.alarm_en = 1;
 }*/
 // 
-IRAM_ATTR bool bigSram() { return bigRam;}
+bool bigSram() { return bigRam;}
 //-----------------------------------
 // every 500µs
-IRAM_ATTR void   msCallback(void *pArg) {
+void   msCallback(void *pArg) {
 	int timer_idx = (int) pArg;
 
 //	queue_event_t evt;	
@@ -167,7 +167,7 @@ IRAM_ATTR void   msCallback(void *pArg) {
 	TIMERG1.hw_timer[timer_idx].config.alarm_en = 1;
 }
 
-IRAM_ATTR void   sleepCallback(void *pArg) {
+void   sleepCallback(void *pArg) {
 	int timer_idx = (int) pArg;
 	queue_event_t evt;	
 	TIMERG0.int_clr_timers.t0 = 1; //isr ack
@@ -177,7 +177,7 @@ IRAM_ATTR void   sleepCallback(void *pArg) {
 	xQueueSendFromISR(event_queue, &evt, NULL);	
 	TIMERG0.hw_timer[timer_idx].config.alarm_en = 0;
 }
-IRAM_ATTR void   wakeCallback(void *pArg) {
+void   wakeCallback(void *pArg) {
 
 	int timer_idx = (int) pArg;
 	queue_event_t evt;	

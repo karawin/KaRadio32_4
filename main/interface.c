@@ -151,8 +151,8 @@ A command error display:\n\
 
 uint16_t currentStation = 0;
 static gpio_num_t led_gpio = GPIO_NONE;
-static IRAM_ATTR uint32_t lcd_out = 0xFFFFFFFF;
-static IRAM_ATTR uint32_t lcd_stop = 0xFFFFFFFF;
+static uint32_t lcd_out = 0xFFFFFFFF;
+static uint32_t lcd_stop = 0xFFFFFFFF;
 
 static esp_log_level_t s_log_default_level =  ESP_LOG_NONE;
 extern void wsVol(char* vol);

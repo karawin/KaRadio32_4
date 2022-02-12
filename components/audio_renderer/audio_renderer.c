@@ -21,6 +21,11 @@
 #include "app_main.h"
 #include "MerusAudio.h"
 
+#include "freertos/FreeRTOS.h"
+
+#include "common_component.h"
+
+
 #include "audio_player.h"
 #include "audio_renderer.h"
 
@@ -286,7 +291,7 @@ static void render_i2s_samples(char *buf, uint32_t buf_len, pcm_format_t *buf_de
 	free (outBuf8);
 }
 
-static bool IRAM_ATTR set_sample_rate(int hz)
+static bool set_sample_rate(int hz)
 {
 //  if (!i2sOn) return false;
   if (hz < 32000) return false;
@@ -310,7 +315,7 @@ static bool IRAM_ATTR set_sample_rate(int hz)
 }
 
 
-static inline void IRAM_ATTR change_volume16(int16_t *buffer, size_t num_samples)
+static inline void change_volume16(int16_t *buffer, size_t num_samples)
 {
 	volatile uint32_t mult = renderer_instance->volume;
 
@@ -324,7 +329,7 @@ static inline void IRAM_ATTR change_volume16(int16_t *buffer, size_t num_samples
 	}
 }
 
-static void IRAM_ATTR encode_spdif(uint32_t *spdif_buffer, int16_t *buffer, size_t num_samples, pcm_format_t *buf_desc)
+static void encode_spdif(uint32_t *spdif_buffer, int16_t *buffer, size_t num_samples, pcm_format_t *buf_desc)
 {
 		// pointer to left / right sample positio
 	int16_t *ptr_l = buffer;
@@ -384,7 +389,7 @@ static void IRAM_ATTR encode_spdif(uint32_t *spdif_buffer, int16_t *buffer, size
 	}
 }
 
-static void IRAM_ATTR write_i2s(const void *buffer, size_t bytes_cnt)
+static void write_i2s(const void *buffer, size_t bytes_cnt)
 {
 	uint8_t *buf = (uint8_t*)buffer;
 	size_t bytes_left = bytes_cnt;
@@ -408,7 +413,7 @@ static void IRAM_ATTR write_i2s(const void *buffer, size_t bytes_cnt)
  * Original source at:
 *      https://github.com/earlephilhower/ESP8266Audio/blob/master/src/AudioOutputSPDIF.cpp
 */
-static void IRAM_ATTR render_spdif_samples(const void *buf, uint32_t buf_len, pcm_format_t *buf_desc)
+static void render_spdif_samples(const void *buf, uint32_t buf_len, pcm_format_t *buf_desc)
 {
 	//ESP_LOGI(TAG, "buf_desc: bit_depth %d format %d num_chan %d sample_rate %d", buf_desc->bit_depth, buf_desc->buffer_format, buf_desc->num_channels, buf_desc->sample_rate);
 	//    ESP_LOGV(TAG, "renderer_instance: bit_depth %d, output_mode %d", renderer_instance->bit_depth, renderer_instance->output_mode);
@@ -459,7 +464,7 @@ static void IRAM_ATTR render_spdif_samples(const void *buf, uint32_t buf_len, pc
 	free (spdif_buffer);
 }
 
-void IRAM_ATTR render_samples(char *buf, uint32_t buf_len, pcm_format_t *buf_desc)
+void render_samples(char *buf, uint32_t buf_len, pcm_format_t *buf_desc)
 {
     if(renderer_status != RUNNING)
         return;
@@ -470,7 +475,7 @@ void IRAM_ATTR render_samples(char *buf, uint32_t buf_len, pcm_format_t *buf_des
 		render_i2s_samples(buf, buf_len, buf_desc);
 }
 
-void  IRAM_ATTR renderer_zero_dma_buffer()
+void  renderer_zero_dma_buffer()
 {
     i2s_zero_dma_buffer(renderer_instance->i2s_num);
 }

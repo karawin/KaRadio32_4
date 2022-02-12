@@ -276,7 +276,7 @@ char Version[20];
 // call this every 1 millisecond via timer ISR
 //
 void (*serviceAddon)() = NULL;
-IRAM_ATTR  void ServiceAddon(void)
+void ServiceAddon(void)
 {
 	timer1s++;
 	timerScroll++;
@@ -1105,7 +1105,7 @@ int tx,ty;
 
 static uint8_t divide = 0;
 // indirect call to service
-IRAM_ATTR void multiService()  // every 1ms
+void multiService()  // every 1ms
 {
 	if (isEncoder0) service(encoder0);
 	if (isEncoder1) service(encoder1);

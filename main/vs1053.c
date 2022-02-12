@@ -647,8 +647,6 @@ void VS1053_flush_cancel() {
 	
 }
 
-
-//IRAM_ATTR 
 void vsTask(void *pvParams) { 
 #define VSTASKBUF	1024
 	portBASE_TYPE uxHighWaterMark;

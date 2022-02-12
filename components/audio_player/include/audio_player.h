@@ -10,7 +10,7 @@
 
 #include <sys/types.h>
 #include "common_component.h"
-#include "audio_renderer.h"
+//#include "audio_renderer.h"
 
 int audio_stream_consumer(const char *recv_buf, ssize_t bytes_read);
 

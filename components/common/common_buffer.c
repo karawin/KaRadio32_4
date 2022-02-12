@@ -16,7 +16,7 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "spiram_fifo.h"
-#include "byteswap.h"
+#include <byteswap.h>
 
 #define TAG "common"
 

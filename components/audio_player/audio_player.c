@@ -22,6 +22,7 @@
 #include "webclient.h"
 #include "vs1053.h"
 #include "app_main.h"
+#include "audio_renderer.h"
 
 #define TAG "audio_player"
 //#define PRIO_MAD configMAX_PRIORITIES - 4
