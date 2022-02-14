@@ -3,7 +3,7 @@ set(COMPONENT_SRCS
 	"addoncommon.c"
 	"addonu8g2.c"
 	"addonucg.c"
-	"app_main4.c"
+	"app_main.c"
 	"cencode.c"
 	"ClickButtons.c"
 	"ClickEncoder.c"
@@ -28,8 +28,9 @@ set(COMPONENT_SRCS
 
 set(COMPONENT_ADD_INCLUDEDIRS 
 	"./include/"
-	"C:/Espressif/frameworks/esp-idf-v4.4/components/freertos/include/freertos/"
-	PRIV_REQUIRES wolfssl
+	"../webpage/"
+	
+	PRIV_REQUIRES wolfssl 
 )
 
 register_component()

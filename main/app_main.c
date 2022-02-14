@@ -130,10 +130,10 @@ IRAM_ATTR void interrupt1Ms() {timer_enable_intr(TIMERGROUP1MS, msTimer);}
 //IRAM_ATTR void noInterrupts() {noInterrupt1Ms();}
 //IRAM_ATTR void interrupts() {interrupt1Ms();}
 
-char* getIp() {return (localIp);}
-uint8_t getIvol() {return clientIvol;}
-void setIvol( uint8_t vol) {clientIvol = vol;}; //ctimeVol = 0;}
-output_mode_t get_audio_output_mode() { return audio_output_mode;}
+IRAM_ATTR char* getIp() {return (localIp);}
+IRAM_ATTR uint8_t getIvol() {return clientIvol;}
+IRAM_ATTR void setIvol( uint8_t vol) {clientIvol = vol;}; //ctimeVol = 0;}
+IRAM_ATTR output_mode_t get_audio_output_mode() { return audio_output_mode;}
 
 /*
 IRAM_ATTR void   microsCallback(void *pArg) {
@@ -151,19 +151,25 @@ IRAM_ATTR void   microsCallback(void *pArg) {
 bool bigSram() { return bigRam;}
 //-----------------------------------
 // every 500µs
-void   msCallback(void *pArg) {
+IRAM_ATTR void   msCallback(void *pArg) {
 	int timer_idx = (int) pArg;
-
+	queue_event_t evt;	
 //	queue_event_t evt;	
 	TIMERG1.hw_timer[timer_idx].update = 1;
 	TIMERG1.int_clr_timers.t0 = 1; //isr ack
-	if (divide)
+	evt.type = TIMER_1MS;
+    evt.i1 = TIMERGROUP;
+    evt.i2 = timer_idx;
+	xQueueSendFromISR(event_queue, &evt, NULL);
+	ServiceAddon();
+/*	if (divide)
 	{
 		ctimeMs++;	// for led
 //		ctimeVol++; // to save volume
 	}	
 	divide = !divide;
-	if (serviceAddon != NULL) serviceAddon(); // for the encoders and buttons
+	*/
+//	if (serviceAddon != NULL) serviceAddon(); // for the encoders and buttons
 	TIMERG1.hw_timer[timer_idx].config.alarm_en = 1;
 }
 
@@ -270,6 +276,8 @@ timer_config_t config;
     config.intr_type = TIMER_INTR_LEVEL;
     config.counter_en = TIMER_PAUSE;
 	
+	event_queue = xQueueCreate(10, sizeof(queue_event_t));
+	
 	/*Configure timer sleep*/
     ESP_ERROR_CHECK(timer_init(TIMERGROUP, sleepTimer, &config));
 	ESP_ERROR_CHECK(timer_pause(TIMERGROUP, sleepTimer));
@@ -362,8 +370,8 @@ static void init_hardware()
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 							   int32_t event_id, void *event_data)
 {
-    //EventGroupHandle_t wifi_event = ctx;
-//	if (event_base == WIFI_EVENT)
+//    EventGroupHandle_t wifi_event = ctx;
+
     switch (event_id)
     {
     case WIFI_EVENT_STA_START:
@@ -432,7 +440,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
     default:
         break;
     }
-//    return ESP_OK;
+ //   return ESP_OK;
 }
 
 
@@ -468,10 +476,7 @@ static void start_wifi()
 	tcpip_adapter_init();
 	tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA); // Don't run a DHCP client	
     /* FreeRTOS event group to signal when we are connected & ready to make a request */
-//	wifi_event_group = xEventGroupCreate();	
-//    ESP_ERROR_CHECK( esp_event_loop_init(event_handler, wifi_event_group) );
-
-	wifi_event_group = xEventGroupCreate();
+	wifi_event_group = xEventGroupCreate();	
 	ESP_ERROR_CHECK(esp_event_loop_create_default());
 /*	ap = esp_netif_create_default_wifi_ap();
 	assert(ap);
@@ -482,7 +487,7 @@ static void start_wifi()
 	ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL));
 	ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
 	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_NULL));
-		
+	
 	if (g_device->current_ap == APMODE) 
 	{
 		if (strlen(g_device->ssid1) !=0)
@@ -578,7 +583,7 @@ static void start_wifi()
 		}
 
 		/* Wait for the callback to set the CONNECTED_BIT in the event group. */
-		if ( (xEventGroupWaitBits(wifi_event_group, CONNECTED_AP,false, true,2000) & CONNECTED_AP) ==0) 
+		if ( (xEventGroupWaitBits(wifi_event_group, CONNECTED_AP,false, true, 2000) & CONNECTED_AP) ==0) 
 		//timeout . Try the next AP
 		{
 			g_device->current_ap++;
@@ -635,7 +640,6 @@ void start_network(){
 	if (mode == WIFI_MODE_AP)
 	{
 			xEventGroupWaitBits(wifi_event_group, CONNECTED_AP,false, true, 3000);
-//			xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT,false, true, 3000);
 			ip4_addr_copy(info.ip, ipAddr);
 			tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, &info);
 			strcpy(localIp , ip4addr_ntoa(&info.ip));
@@ -715,18 +719,17 @@ void start_network(){
 
 
 //blinking led and timer isr
-void timerTask(void* p) {
+IRAM_ATTR void timerTask(void* p) {
 //	struct device_settings *device;	
 	uint32_t cCur;
 	bool stateLed = false;
 	bool isEsplay;
 	gpio_num_t gpioLed;
-//	int uxHighWaterMark;
-	
-	initTimers();
-	isEsplay = option_get_esplay();
+	queue_event_t evt;
 	gpio_get_ledgpio(&gpioLed);
 	setLedGpio(gpioLed);
+//	int uxHighWaterMark;
+	isEsplay = option_get_esplay();
 				
 	if (gpioLed != GPIO_NONE)
 	{
@@ -734,8 +737,10 @@ void timerTask(void* p) {
 		gpio_set_level(gpioLed, ledPolarity ? 1 : 0);
 	}	
 	cCur = FlashOff*10;
+		// queue for events of the sleep / wake and Ms timers
+	
+	initTimers();
 
-	queue_event_t evt;
 	
 	while(1) {
 		// read and treat the timer queue events
@@ -744,41 +749,42 @@ void timerTask(void* p) {
 		while (xQueueReceive(event_queue, &evt, 0))
 		{
 			switch (evt.type){
+					case TIMER_1MS:
+						if (serviceAddon != NULL) serviceAddon(); // for the encoders and buttons
+						if (isEsplay) // esplay board only
+							rexp = i2c_keypad_read(); // read the expansion
+						if (divide)
+							ctimeMs++;	// for led	
+						divide = !divide;	
+					break;				
 					case TIMER_SLEEP:
 						clientDisconnect("Timer"); // stop the player
 					break;
 					case TIMER_WAKE:
-					clientConnect(); // start the player	
+						clientConnect(); // start the player	
 					break;
 					default:
 					break;
 			}
-		}
-		if (ledStatus)
-		{
-			if (ctimeMs >= cCur)
-			{
-				gpioLed = getLedGpio();
-
-				if (stateLed)
-				{
-					if (gpioLed != GPIO_NONE) gpio_set_level(gpioLed,ledPolarity?1:0);	
-					stateLed = false;
-					cCur = FlashOff*10;
-				} else
-				{
-					if (gpioLed != GPIO_NONE) gpio_set_level(gpioLed,ledPolarity?0:1);	
-					stateLed = true;
-					cCur = FlashOn*10;										
-				}
-				ctimeMs = 0;
-			}			
-		} 
+		}	
+					if ((ledStatus)&&(ctimeMs >= cCur))
+					{
+						gpioLed = getLedGpio();
+						if (stateLed)
+						{
+							if (gpioLed != GPIO_NONE) gpio_set_level(gpioLed,ledPolarity?1:0);	
+							stateLed = false;
+							cCur = FlashOff*10;
+						} else
+						{
+							if (gpioLed != GPIO_NONE) gpio_set_level(gpioLed,ledPolarity?0:1);	
+							stateLed = true;
+							cCur = FlashOn*10;										
+						}
+						ctimeMs = 0;			
+					} 
 		
-		vTaskDelay(10);	
-		
-		if (isEsplay) // esplay board only
-			rexp = i2c_keypad_read(); // read the expansion
+		vTaskDelay(1);	
 	}
 //	printf("t0 end\n");
 	vTaskDelete( NULL ); // stop the task (never reached)
@@ -1054,10 +1060,8 @@ void app_main()
 	setIvol( g_device->vol);
 	ESP_LOGI(TAG, "Volume set to %d",g_device->vol);
 		
-	
-	// queue for events of the sleep / wake and Ms timers
-	event_queue = xQueueCreate(30, sizeof(queue_event_t));
-	// led blinks
+
+														event_queue = xQueueCreate(30, sizeof(queue_event_t));	// led blinks
 	xTaskCreatePinnedToCore(timerTask, "timerTask",2100, NULL, PRIO_TIMER, &pxCreatedTask,CPU_TIMER); 
 	ESP_LOGI(TAG, "%s task: %x","t0",(unsigned int)pxCreatedTask);		
 	

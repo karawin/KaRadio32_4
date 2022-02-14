@@ -276,7 +276,7 @@ char Version[20];
 // call this every 1 millisecond via timer ISR
 //
 void (*serviceAddon)() = NULL;
-void ServiceAddon(void)
+IRAM_ATTR  void ServiceAddon(void)
 {
 	timer1s++;
 	timerScroll++;
@@ -296,8 +296,7 @@ void ServiceAddon(void)
 		
 		timer1s = 0;
 		// Other slow timers        
-         timerScreen++;
-         
+        timerScreen++;       
 	}
 }
 
@@ -854,7 +853,6 @@ void periphLoop()
 		if (isJoystick1) joystickCompute(joystick1,SCTRL);	
 	} else
 	{
-//		rexp = i2c_keypad_read(); // read the expansion
 //		ESP_LOGI(TAG,"rexp: 0x%x",rexp);
 		buttonCompute(expButton0,VCTRL);
 		buttonCompute(expButton1,SCTRL);
@@ -1105,11 +1103,11 @@ int tx,ty;
 
 static uint8_t divide = 0;
 // indirect call to service
-void multiService()  // every 1ms
+IRAM_ATTR void multiService()  // every 1ms
 {
 	if (isEncoder0) service(encoder0);
 	if (isEncoder1) service(encoder1);
-	ServiceAddon();
+//	ServiceAddon();
 	if (divide++ == 10) // only every 10ms
 	{
 		if (isButton0) serviceBtn(button0);
@@ -1273,7 +1271,7 @@ void task_addon(void *pvParams)
 	if (g_device->lcd_type!=LCD_NONE)
 	{
 		// queue for events of the lcd
-		event_lcd = xQueueCreate(20, sizeof(event_lcd_t));
+		event_lcd = xQueueCreate(10, sizeof(event_lcd_t));
 		ESP_LOGD(TAG,"event_lcd: %x",(int)event_lcd);	
 
 		xTaskCreatePinnedToCore (task_lcd, "task_lcd", 2300, NULL, PRIO_LCD, &pxTaskLcd,CPU_LCD); 

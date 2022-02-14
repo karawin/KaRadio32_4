@@ -151,10 +151,10 @@ A command error display:\n\
 
 uint16_t currentStation = 0;
 static gpio_num_t led_gpio = GPIO_NONE;
-static uint32_t lcd_out = 0xFFFFFFFF;
-static uint32_t lcd_stop = 0xFFFFFFFF;
+static IRAM_ATTR uint32_t lcd_out = 0xFFFFFFFF;
+static IRAM_ATTR uint32_t lcd_stop = 0xFFFFFFFF;
 
-static esp_log_level_t s_log_default_level =  ESP_LOG_NONE;
+static esp_log_level_t s_log_default_level = ESP_LOG_NONE;
 extern void wsVol(char* vol);
 extern void playStation(char* id);
 void clientVol(char *s);
@@ -936,19 +936,8 @@ void sysledgpio(char* s)
 
 void setLedGpio(uint8_t val) { led_gpio = val;g_device->led_gpio = val;}
 
-uint8_t getLedGpio()
+IRAM_ATTR uint8_t getLedGpio()
 {
-/*	if (led_gpio == GPIO_NONE)
-	{
-		gpio_get_ledgpio(&led_gpio);
-		if (led_gpio != g_device->led_gpio) 
-		{
-			g_device->led_gpio = led_gpio;
-			saveDeviceSettings(g_device);
-		} 
-	} 
-	
-	*/
 	return led_gpio;	
 }
 

@@ -280,9 +280,10 @@ static void ota_task(void *pvParameter)
             ESP_LOGE(TAG, "Unexpected recv result");
         }
 
-		TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
+/*		TIMERG0.wdt_wprotect=TIMG_WDT_WKEY_VALUE;
 		TIMERG0.wdt_feed=1;
 		TIMERG0.wdt_wprotect=0;
+		*/
 	}
 	kprintf("\n");
     ESP_LOGI(TAG, "Total Write binary data length : %d", binary_file_length);

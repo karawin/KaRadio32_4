@@ -83,7 +83,7 @@ static struct servFile* findFile(char* name)
 
 static void respOk(int conn,const char* message)
 {
-	char rempty[] = {""};
+	const char rempty[] = {""};
 	if (message == NULL) message = rempty;
 	char fresp[strlen(strsROK)+strlen(message)+15]; // = inmalloc(strlen(strsROK)+strlen(message)+15);
 	sprintf(fresp,strsROK,"text/plain",strlen(message),message);

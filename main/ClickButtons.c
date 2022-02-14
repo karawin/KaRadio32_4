@@ -180,7 +180,7 @@ Button getButtons(Button_t *enc,uint8_t index)
 #define NACK_VAL 0x1                /*!< I2C nack value */
 #define I2C_ADDR 0x40				// esplay i2c address
 
-uint8_t i2c_keypad_read()
+IRAM_ATTR  uint8_t i2c_keypad_read()
 {
 uint8_t val;
 

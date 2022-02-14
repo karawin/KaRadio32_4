@@ -1,8 +1,7 @@
 /*
  * Copyright 2016 karawin (http://www.karawin.fr)
 */
-#define TAG "webclient" 
-
+#define TAG "webclient"
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
 #include "webclient.h"

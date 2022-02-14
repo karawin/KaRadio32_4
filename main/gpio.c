@@ -615,11 +615,11 @@ void gpio_get_adc(adc1_channel_t  *channel, adc1_channel_t *chanbatt)
 	}	
 	
 	err = nvs_get_u8(hardware_handle, "P_ADC_KBD",(uint8_t *) channel);
-	if (err != ESP_OK)ESP_LOGW(TAG,"g_get_adc err 0x%x",err);
+	if (err != ESP_OK)ESP_LOGW(TAG,"g_get_adc kbd err 0x%x",err);
 	else *channel = gpioToChannel(*channel);
 
 	err = nvs_get_u8(hardware_handle, "P_ADC_BAT",(uint8_t *) chanbatt);
-	if (err != ESP_OK)ESP_LOGW(TAG,"g_get_adc err 0x%x",err);
+	if (err != ESP_OK)ESP_LOGW(TAG,"g_get_adc bat err 0x%x",err);
 	else *chanbatt = gpioToChannel(*chanbatt);
 
 	close_partition(hardware_handle,hardware);		

@@ -16,7 +16,7 @@ Inspirated by:
 
 //extern const char strtWELCOME[] ;
 extern int telnetclients[NBCLIENTT];
-
+//#include <stdbool.h>
 // public:
 // init some data
 void telnetinit(void);
