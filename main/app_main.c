@@ -130,7 +130,7 @@ IRAM_ATTR void interrupt1Ms() {timer_enable_intr(TIMERGROUP1MS, msTimer);}
 //IRAM_ATTR void noInterrupts() {noInterrupt1Ms();}
 //IRAM_ATTR void interrupts() {interrupt1Ms();}
 
-IRAM_ATTR char* getIp() {return (localIp);}
+char* getIp() {return (localIp);}
 IRAM_ATTR uint8_t getIvol() {return clientIvol;}
 IRAM_ATTR void setIvol( uint8_t vol) {clientIvol = vol;}; //ctimeVol = 0;}
 IRAM_ATTR output_mode_t get_audio_output_mode() { return audio_output_mode;}
@@ -655,7 +655,7 @@ void start_network(){
 			ESP_ERROR_CHECK(tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &info));
 			dns_clear_servers(false);
 			IP_SET_TYPE(( ip_addr_t* )&info.gw, IPADDR_TYPE_V4); // mandatory
-			(( ip_addr_t* )&info.gw)->type = IPADDR_TYPE_V4;
+//			(( ip_addr_t* )&info.gw)->type = IPADDR_TYPE_V4;
 			dns_setserver(0,( ip_addr_t* ) &info.gw);
 			dns_setserver(1,( ip_addr_t* ) &info.gw);				// if static ip	check dns
 		}
@@ -885,7 +885,7 @@ void app_main()
 	esp_err_t err;
 
 	ESP_LOGI(TAG, "starting app_main()");
-    ESP_LOGI(TAG, "RAM left: %u", esp_get_free_heap_size());
+    ESP_LOGE(TAG, "RAM left: %u", esp_get_free_heap_size());
 
 	const esp_partition_t *running = esp_ota_get_running_partition();
 	ESP_LOGE(TAG, "Running partition type %d subtype %d (offset 0x%08x)",
@@ -1119,7 +1119,7 @@ void app_main()
 
 	//start tasks of KaRadio32
 	vTaskDelay(1);
-	xTaskCreatePinnedToCore(clientTask, "clientTask", 3800, NULL, PRIO_CLIENT, &pxCreatedTask,CPU_CLIENT); 
+	xTaskCreatePinnedToCore(clientTask, "clientTask", 3700, NULL, PRIO_CLIENT, &pxCreatedTask,CPU_CLIENT); 
 	ESP_LOGI(TAG, "%s task: %x","clientTask",(unsigned int)pxCreatedTask);	
 	vTaskDelay(1);
     xTaskCreatePinnedToCore(serversTask, "serversTask", 3100, NULL, PRIO_SERVER, &pxCreatedTask,CPU_SERVER); 
@@ -1135,6 +1135,7 @@ void app_main()
 	kprintf("READY. Type help for a list of commands\n");
 	// error log on telnet
 	esp_log_set_vprintf( (vprintf_like_t)lkprintf);
+	ESP_LOGI(TAG, "RAM left %d", esp_get_free_heap_size());
 	//autostart		
 	autoPlay();
 // All done.

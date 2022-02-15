@@ -44,7 +44,7 @@ const char stritWIFISTATUS[]  = {"#WIFI.STATUS#\nIP: %d.%d.%d.%d\nMask: %d.%d.%d
 const char stritWIFISTATION[]  = {"#WIFI.STATION#\nSSID: %s\nPASSWORD: %s\n##WIFI.STATION#\n"};
 const char stritPATCH[]  = {"#WIFI.PATCH#: VS1053 Patch will be %s after power Off and On#\n"};
 const char stritCMDERROR[]  = {"##CMD_ERROR#\n"};
-const char stritHELP0[]  = {"\
+static const char stritHELP0[]  = {"\
 Commands:\n\
 ---------\n\
 //////////////////\n\
@@ -65,7 +65,7 @@ wifi.status: give the current IP GW and mask\n\
 wifi.rssi: print the rssi (power of the reception\n\
 wifi.auto[(\"x\")]  show the autoconnection  state or set it to x. x=0: reboot on wifi disconnect or 1: try reconnection.\n\n\
 "};
-const char stritHELP1[]  = {"\
+static const char stritHELP1[]  = {"\
 //////////////////\n\
   Station Client commands\n\
 //////////////////\n\
@@ -85,7 +85,7 @@ cli.vol: display the current volume. respond with ##CLI.VOL# xxx\n\
 cli.vol-: Decrement the volume by 10 \n\
 cli.vol+: Increment the volume by 10 \n\
 "};
-const char stritHELP2[]  = {"\
+static const char stritHELP2[]  = {"\
 Every vol command from uart or web or browser respond with ##CLI.VOL#: xxx\n\
 cli.wake(\"x\"):  x in minutes. Start or stop the wake function. A value 0 stop the wake timer\n\
 cli.sleep(\"x\"):  x in minutes. Start or stop the sleep function. A value 0 stop the sleep timer\n\
@@ -100,7 +100,7 @@ sys.uart(\"x\"): Change the baudrate of the uart on the next reset.\n\
 sys.i2s: Display the current I2S speed\n\
 "};
 
-const char stritHELP3[]  = {"\
+static const char stritHELP3[]  = {"\
 sys.i2s(\"x\"): Change and record the I2S clock speed of the vs1053 GPIO5 MCLK of the i2s interface to external dac.\n\
 : 0=48kHz, 1=96kHz, 2=192kHz, other equal 0\n\
 sys.erase: erase all recorded configuration and stations.\n\
@@ -116,7 +116,7 @@ sys.version: Display the Release and Revision numbers\n\
 sys.tzo and sys.tzo(\"x:y\"): Display and Set the timezone offset of your country.\n\
 "};
 
-const char stritHELP4[]  = {"\
+static const char stritHELP4[]  = {"\
 sys.date: Send a ntp request and Display the current locale time\n\
 sys.dlog: Display the current log level\n\
 sys.logx: Set log level to x with x=n for none, v for verbose, d for debug, i for info, w for warning, e for error\n\
@@ -128,7 +128,7 @@ sys.lcdblv and sys.lcdblv(\"x\"): Value in percent of the backlight.\n\
 sys.lcd and sys.lcd(\"x\"): Display and Change the lcd type to x on next reset\n\
 "};
 
-const char stritHELP5[]  = {"\
+static const char stritHELP5[]  = {"\
 sys.ledgpio and sys.ledgpio(\"x\"): Display and Change the default Led GPIO (4) to x\n\
 sys.ddmm and sys.ddmm(\"x\"):  Display and Change  the date format. 0:MMDD, 1:DDMM\n\
 sys.host and sys.host(\"your hostname\"): display and change the hostname for mDNS\n\
@@ -445,7 +445,6 @@ void clientParseUrl(char* s)
         for(tmp=0; tmp<(t_end-t+1); tmp++) url[tmp] = 0;
         strncpy(url, t+2, (t_end-t));
         clientSetURL(url);
-//		char* title = malloc(88);
 		char* title = malloc(strlen(url)+13);
 		sprintf(title,"{\"iurl\":\"%s\"}",url); 
 		websocketbroadcast(title, strlen(title));
@@ -474,7 +473,6 @@ void clientParsePath(char* s)
         strncpy(path, t+2, (t_end-t));
 //kprintf("cli.path: %s\n",path);
         clientSetPath(path);
-//		char* title = malloc(130);
 		char* title = malloc(strlen(path)+14);
 		sprintf(title,"{\"ipath\":\"%s\"}",path); 
 		websocketbroadcast(title, strlen(title));

@@ -1,3 +1,4 @@
+@echo off
 echo style
 copy style.css style.ori
 python ./css-html-js-minify.py style.css
