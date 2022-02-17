@@ -9,8 +9,7 @@
 #define _INCLUDE_XTENSA_ABS_XTENSA_H_
 
 
-//#if defined(__disabled__)
-#if defined(__xtensa__)
+#if defined(__disabled__)
 
     //#include "xtensa/tie/xt_core.h"
     // extern int _TIE_xt_core_ABS(int t);

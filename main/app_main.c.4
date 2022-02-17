@@ -33,7 +33,7 @@ Copyright (C) 2017  KaraWin
 #include "freertos/queue.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
-#include "esp_event.h"
+#include "esp_event_loop.h"
 #include "esp_log.h"
 #include "esp_ota_ops.h"
 #include "esp_sleep.h"
@@ -123,9 +123,6 @@ static bool bigRam = false;
 //static uint32_t ctimeVol = 0;
 static uint32_t ctimeMs = 0;	
 static bool divide = false;
-
-esp_netif_t *ap;
-esp_netif_t *sta;
 // disable 1MS timer interrupt
 IRAM_ATTR void noInterrupt1Ms() {timer_disable_intr(TIMERGROUP1MS, msTimer);}
 // enable 1MS timer interrupt
@@ -302,7 +299,18 @@ timer_config_t config;
 	ESP_ERROR_CHECK(timer_set_alarm(TIMERGROUP1MS, msTimer,TIMER_ALARM_EN));
 	ESP_ERROR_CHECK(timer_start(TIMERGROUP1MS, msTimer));
 	
-
+	/*Configure timer 1µS*/
+/*	config.auto_reload = TIMER_AUTORELOAD_EN;
+	config.divider = TIMER_DIVIDER1mS;
+	ESP_ERROR_CHECK(timer_init(TIMERGROUP1mS, microsTimer, &config));
+	ESP_ERROR_CHECK(timer_pause(TIMERGROUP1mS, microsTimer));
+	ESP_ERROR_CHECK(timer_isr_register(TIMERGROUP1mS, microsTimer, microsCallback, (void*) microsTimer, 0, NULL));
+*/	/* start 1µS timer*/
+/*	ESP_ERROR_CHECK(timer_set_counter_value(TIMERGROUP1mS, microsTimer, 0x00000000ULL));
+	ESP_ERROR_CHECK(timer_set_alarm_value(TIMERGROUP1mS, microsTimer,TIMERVALUE1mS(10))); // 10 ms timer
+	ESP_ERROR_CHECK(timer_enable_intr(TIMERGROUP1mS, microsTimer));
+	ESP_ERROR_CHECK(timer_set_alarm(TIMERGROUP1mS, microsTimer,TIMER_ALARM_EN));
+	ESP_ERROR_CHECK(timer_start(TIMERGROUP1mS, microsTimer));*/
 }
 
 //////////////////////////////////////////////////////////////////
@@ -461,49 +469,41 @@ static void start_wifi()
 	char ssid[SSIDLEN]; 
 	char pass[PASSLEN];
 	
-	static bool first_pass = false;
-	static bool initialized = false;
-	if (!initialized)
-	{
-		esp_netif_init();
-		wifi_event_group = xEventGroupCreate();	
-		ESP_ERROR_CHECK(esp_event_loop_create_default());
-		ap = esp_netif_create_default_wifi_ap();
-		assert(ap);
-		sta = esp_netif_create_default_wifi_sta();
-		assert(sta);
-													wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();																													
-		ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-		ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
-		ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL));
-		ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-		ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_NULL));
-		initialized = true;
-	}
-	ESP_LOGI(TAG, "WiFi init done!");
+	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+//    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
+	
+	tcpip_adapter_init();
+	tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA); // Don't run a DHCP client	
+    /* FreeRTOS event group to signal when we are connected & ready to make a request */
+	wifi_event_group = xEventGroupCreate();	
+	ESP_ERROR_CHECK(esp_event_loop_create_default());
+/*	ap = esp_netif_create_default_wifi_ap();
+	assert(ap);
+	sta = esp_netif_create_default_wifi_sta();
+	assert(sta);*/
+	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+	ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
+	ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler, NULL));
+	ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_NULL));
 	
 	if (g_device->current_ap == APMODE) 
 	{
 		if (strlen(g_device->ssid1) !=0)
-		{
-			g_device->current_ap = STA1;
-		} else
-		{ 
-			if (strlen(g_device->ssid2) !=0)
-				g_device->current_ap = STA2;
-			else 
-				g_device->current_ap = APMODE;
+		{g_device->current_ap = STA1;}
+		else 
+		{	if (strlen(g_device->ssid2) !=0)
+			{g_device->current_ap = STA2;}
+			else g_device->current_ap = APMODE;
 		}	
 		saveDeviceSettings(g_device);
 	}
 	
 	while (1)
 	{
-		if (first_pass)
-		{
-			ESP_ERROR_CHECK( esp_wifi_stop() );
-			vTaskDelay(5);
-		}
+		ESP_ERROR_CHECK( esp_wifi_stop() );
+		vTaskDelay(10);
 		
 		switch (g_device->current_ap)
 		{
@@ -558,16 +558,12 @@ static void start_wifi()
 			unParse((char*)(wifi_config.sta.password));
 			if  (strlen(ssid)/*&&strlen(pass)*/)
 			{
-				if (CONNECTED_BIT > 1)
-				{
-					esp_wifi_disconnect();
-				}
+				esp_wifi_disconnect();
 				ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
-
+//				ESP_LOGI(TAG, "connecting %s, %d, %s, %d",ssid,strlen((char*)(wifi_config.sta.ssid)),pass,strlen((char*)(wifi_config.sta.password)));
 				ESP_LOGI(TAG, "connecting %s",ssid);
 				ESP_ERROR_CHECK( esp_wifi_start() );	
-			} 
-			else
+			} else
 			{
 				g_device->current_ap++;
 				g_device->current_ap %=3;
@@ -601,26 +597,19 @@ static void start_wifi()
 			}
 			saveDeviceSettings(g_device);
 			ESP_LOGI(TAG,"device->current_ap: %d",g_device->current_ap);	
-		}
-		else break;	// 						
-		first_pass = true;
+		}	else break;	// 					
 	}					
 }
 
 void start_network(){
 //	struct device_settings *g_device;	
-	esp_netif_ip_info_t info;
+	tcpip_adapter_ip_info_t info;
 	wifi_mode_t mode;	
 	ip4_addr_t ipAddr;
 	ip4_addr_t mask;
 	ip4_addr_t gate;
 	uint8_t dhcpEn = 0;
 
-	IP4_ADDR(&ipAddr, 192, 168, 4, 1);
-	IP4_ADDR(&gate, 192, 168, 4, 1);
-	IP4_ADDR(&mask, 255, 255, 255, 0);
-
-	esp_netif_dhcpc_stop(sta); // Don't run a DHCP client								 
 	
 	switch (g_device->current_ap)
 	{
@@ -650,25 +639,20 @@ void start_network(){
 	ESP_ERROR_CHECK(esp_wifi_get_mode(&mode));		
 	if (mode == WIFI_MODE_AP)
 	{
-		xEventGroupWaitBits(wifi_event_group, CONNECTED_AP,false, true, 3000);
-		ip4_addr_copy(info.ip, ipAddr);
-
+			xEventGroupWaitBits(wifi_event_group, CONNECTED_AP,false, true, 3000);
+			ip4_addr_copy(info.ip, ipAddr);
+			tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_AP, &info);
+			strcpy(localIp , ip4addr_ntoa(&info.ip));
+			printf("IP: %s\n\n",ip4addr_ntoa(&info.ip));	
 	
-		esp_netif_set_ip_info(ap, &info);
-		esp_netif_ip_info_t ap_ip_info;
-		ap_ip_info.ip.addr = 0;
-		while (ap_ip_info.ip.addr == 0)
-		{
-			esp_netif_get_ip_info(ap, &ap_ip_info);
-		}
 	}
 	else // mode STA
 	{	
 		if (dhcpEn ) // check if ip is valid without dhcp
-			esp_netif_dhcpc_start(sta); //  run a DHCP client
+			tcpip_adapter_dhcpc_start(TCPIP_ADAPTER_IF_STA); //  run a DHCP client
 		else
 		{
-			ESP_ERROR_CHECK(esp_netif_set_ip_info(sta, &info));
+			ESP_ERROR_CHECK(tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &info));
 			dns_clear_servers(false);
 			IP_SET_TYPE(( ip_addr_t* )&info.gw, IPADDR_TYPE_V4); // mandatory
 //			(( ip_addr_t* )&info.gw)->type = IPADDR_TYPE_V4;
@@ -690,22 +674,25 @@ void start_network(){
 		
 		vTaskDelay(1);	
 		// retrieve the current ip	
-		esp_netif_ip_info_t sta_ip_info;
-		sta_ip_info.ip.addr = 0;
-		while (sta_ip_info.ip.addr ==0)
+		tcpip_adapter_ip_info_t ip_info;
+		ip_info.ip.addr =0;		
+		while (ip_info.ip.addr ==0)
 		{
-			esp_netif_get_ip_info(sta, &sta_ip_info);
-		
-		}
-		
+			if (mode == WIFI_MODE_AP)
+				tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &ip_info);
+			else	
+				tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ip_info);
+		}		
 		ip_addr_t *ipdns0 = (ip_addr_t *)dns_getserver(0);
 //		ip_addr_t ipdns1 = dns_getserver(1);
-		ESP_LOGW(TAG, "DNS: %s  \n", ip4addr_ntoa((struct ip4_addr *)&ipdns0));
+		printf("\nDNS: %s  \n",ip4addr_ntoa(( struct ip4_addr* ) ipdns0));
+		strcpy(localIp , ip4addr_ntoa(&ip_info.ip));
+		printf("IP: %s\n\n",ip4addr_ntoa(&ip_info.ip));
 
 		
 		if (dhcpEn) // if dhcp enabled update fields
 		{  
-			esp_netif_get_ip_info(sta, &info);
+			tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &info);
 			switch (g_device->current_ap)
 			{
 			case STA1: //ssid1 used
@@ -722,11 +709,8 @@ void start_network(){
 			}
 		}
 		saveDeviceSettings(g_device);	
-		esp_netif_set_hostname(sta, "karadio32");
+		tcpip_adapter_set_hostname(TCPIP_ADAPTER_IF_STA, "karadio32");	
 	}
-	ip4_addr_copy(ipAddr, info.ip);
-	strcpy(localIp, ip4addr_ntoa(&ipAddr));
-	ESP_LOGW(TAG, "IP: %s\n\n", localIp);									  
 	
 	lcd_welcome(localIp,"IP found");
 	vTaskDelay(10);
@@ -1088,18 +1072,14 @@ void app_main()
 // start the network
 //-----------------------------
     /* init wifi & network*/
-	ESP_LOGE(TAG, "RAM left bw: %u", esp_get_free_heap_size());
     start_wifi();
-	ESP_LOGE(TAG, "RAM left aw: %u", esp_get_free_heap_size());
 	start_network();
-	ESP_LOGE(TAG, "RAM left an: %u", esp_get_free_heap_size());
 	
 //-----------------------------------------------------
 //init softwares
 //-----------------------------------------------------
 
 	clientInit();	
-	ESP_LOGE(TAG, "RAM left ac: %u", esp_get_free_heap_size());
 	//initialize mDNS service
     err = mdns_init();
     if (err) 

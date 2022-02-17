@@ -2,7 +2,7 @@
 /* -----------------------------------------------------------------------------------------------------------
 Software License for The Fraunhofer FDK AAC Codec Library for Android
 
-© Copyright  1995 - 2013 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ï¿½ Copyright  1995 - 2013 Fraunhofer-Gesellschaft zur Fï¿½rderung der angewandten Forschung e.V.
   All rights reserved.
 
  1.    INTRODUCTION
@@ -99,12 +99,16 @@ amm-info@iis.fraunhofer.de
 /* Take action against VisualStudio 2005 crosscompile problems. */
 
 /* Use single macro (the GCC built in macro) for architecture identification independent of the particular toolchain */
-#if defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || (defined(_MSC_VER) && defined(_M_IX86)) || defined (__x86_64__)
+#if defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || (defined(_MSC_VER) && defined(_M_IX86)) || defined (__x86_64__) || (defined(_MSC_VER) && defined(_M_X64))
 #define __x86__
 #endif
 
 #if (defined(_M_ARM) || defined(__CC_ARM)) && !defined(__arm__) || defined(__TI_TMS470_V5__) && !defined(__arm__)
 #define __arm__
+#endif
+
+#if defined(_ARCH_PPC) && !defined(__powerpc__)
+#define __powerpc__ 1
 #endif
 
 
@@ -150,7 +154,6 @@ amm-info@iis.fraunhofer.de
 #endif
 
 #ifdef _M_ARM
-#include "cmnintrin.h"
 #include "armintr.h"
 #endif
 
@@ -158,7 +161,7 @@ amm-info@iis.fraunhofer.de
 /* Define preferred Multiplication type */
 #if defined(FDK_HIGH_PERFORMANCE) && !defined(FDK_HIGH_QUALITY) /* FDK_HIGH_PERFORMANCE */
 
-#if defined(__mips__) || defined(__powerpc__) || defined(__sh__)
+#if defined(__mips__) || defined(__sh__)
 #define ARCH_PREFER_MULT_16x16
 #undef SINETABLE_16BIT
 #undef POW2COEFF_16BIT
@@ -194,12 +197,28 @@ amm-info@iis.fraunhofer.de
 #undef POW2COEFF_16BIT
 #undef LDCOEFF_16BIT
 
+#elif defined(__aarch64__) || defined(__AARCH64EL__)
+#define ARCH_PREFER_MULT_32x32
+#define ARCH_PREFER_MULT_32x16
+#define SINETABLE_16BIT
+#define POW2COEFF_16BIT
+#define LDCOEFF_16BIT
+#define WINDOWTABLE_16BIT
+
 #elif defined(__x86__)	/* cppp replaced: elif */
 #define ARCH_PREFER_MULT_32x16
 #define SINETABLE_16BIT
 #define WINDOWTABLE_16BIT
 #define POW2COEFF_16BIT
 #define LDCOEFF_16BIT
+
+#elif defined(__powerpc__)
+#define ARCH_PREFER_MULT_32x32
+#define ARCH_PREFER_MULT_32x16
+#define SINETABLE_16BIT
+#define POW2COEFF_16BIT
+#define LDCOEFF_16BIT
+#define WINDOWTABLE_16BIT
 
 #elif defined(__xtensa__)
 /* got nothing yet */

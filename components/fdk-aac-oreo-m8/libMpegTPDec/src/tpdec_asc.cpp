@@ -118,9 +118,7 @@ int  CProgramConfig_IsValid ( const CProgramConfig *pPce )
 
 /*
  * Read the extension for height info.
- * return 0 if successfull,
- *       -1 if the CRC failed,
- *       -2 if invalid HeightInfo.
+ * return 0 if successfull or -1 if the CRC failed.
  */
 static
 int CProgramConfig_ReadHeightExt(
@@ -148,21 +146,15 @@ int CProgramConfig_ReadHeightExt(
 
     for (i=0; i < pPce->NumFrontChannelElements; i++)
     {
-      if ((pPce->FrontElementHeightInfo[i] = (UCHAR) FDKreadBits(bs,2)) >= PC_NUM_HEIGHT_LAYER) {
-        err = -2; /* height information is out of the valid range */
-      }
+      pPce->FrontElementHeightInfo[i] = (UCHAR) FDKreadBits(bs,2);
     }
     for (i=0; i < pPce->NumSideChannelElements; i++)
     {
-      if ((pPce->SideElementHeightInfo[i] = (UCHAR) FDKreadBits(bs,2)) >= PC_NUM_HEIGHT_LAYER) {
-        err = -2; /* height information is out of the valid range */
-      }
+      pPce->SideElementHeightInfo[i] = (UCHAR) FDKreadBits(bs,2);
     }
     for (i=0; i < pPce->NumBackChannelElements; i++)
     {
-      if ((pPce->BackElementHeightInfo[i] = (UCHAR) FDKreadBits(bs,2)) >= PC_NUM_HEIGHT_LAYER) {
-        err = -2; /* height information is out of the valid range */
-      }
+      pPce->BackElementHeightInfo[i] = (UCHAR) FDKreadBits(bs,2);
     }
     FDKbyteAlign(bs, alignmentAnchor);
 
@@ -170,13 +162,6 @@ int CProgramConfig_ReadHeightExt(
     if ((USHORT)FDKreadBits(bs,8) != FDKcrcGetCRC(&crcInfo)) {
       /* CRC failed */
       err = -1;
-    }
-    if (err!=0) {
-      /* Reset whole height information in case an error occured during parsing. The return
-         value ensures that pPce->isValid is set to 0 and implicit channel mapping is used. */
-      FDKmemclear(pPce->FrontElementHeightInfo, sizeof(pPce->FrontElementHeightInfo));
-      FDKmemclear(pPce->SideElementHeightInfo, sizeof(pPce->SideElementHeightInfo));
-      FDKmemclear(pPce->BackElementHeightInfo, sizeof(pPce->BackElementHeightInfo));
     }
   }
   else {

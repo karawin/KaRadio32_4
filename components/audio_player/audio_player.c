@@ -24,7 +24,7 @@
 #include "app_main.h"
 #include "audio_renderer.h"
 
-#define TAG "audio_player"
+#define TAG "Audio_player"
 //#define PRIO_MAD configMAX_PRIORITIES - 4
 
 

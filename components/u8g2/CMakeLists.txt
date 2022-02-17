@@ -78,6 +78,7 @@ idf_component_register(SRCS
 	"csrc/u8x8_string.c"
 	"csrc/u8x8_u16toa.c"
 	"csrc/u8x8_u8toa.c"
-                    INCLUDE_DIRS "csrc"				
+                    INCLUDE_DIRS "csrc"
+					"../../main/include"
 					PRIV_REQUIRES main
 					)

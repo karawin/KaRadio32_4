@@ -102,7 +102,6 @@ amm-info@iis.fraunhofer.de
 
 #include "FDK_trigFcts.h"
 
-#include <stdio.h>
 
 /********************************************************************/
 /*                       MLQUAL DEFINES                             */
@@ -892,15 +891,6 @@ deCorrelateSlotBased( HANDLE_PS_DEC h_ps_d,            /*!< pointer to the modul
     for (sb = sbStart; sb < sbStop; sb++) {
 
       /* Update delay buffers */
-	  
-	  //jpc do nothing but avoid crash. Why? i don't know.
-     if (++(*pDelayBufIdx) >= delayIndexQmf[sb])
-	 {
-//		 printf("ok\n");
-//		 printf(" *pDelayBufIdx:%d sb:%d delayIndexQmf[sb]:%d\n", *pDelayBufIdx,sb ,delayIndexQmf[sb]);
-        (*pDelayBufIdx) --;
-      }	  
-
       rR0 = h_ps_d->specificTo.mpeg.pAaRealDelayBufferQmf[*pDelayBufIdx][sb-FIRST_DELAY_SB];
       iR0 = h_ps_d->specificTo.mpeg.pAaImagDelayBufferQmf[*pDelayBufIdx][sb-FIRST_DELAY_SB];
 
@@ -911,12 +901,10 @@ deCorrelateSlotBased( HANDLE_PS_DEC h_ps_d,            /*!< pointer to the modul
       aaRightReal[sb] = fMult(transRatio, rR0);
       aaRightImag[sb] = fMult(transRatio, iR0);
 
-	  //jpc
- /*     if (++(*pDelayBufIdx) >= delayIndexQmf[sb]) {
+      if (++(*pDelayBufIdx) >= delayIndexQmf[sb]) {
         *pDelayBufIdx = 0;
-      }*/
+      }
       pDelayBufIdx++;
-	 
 
     } /* sb */
   } /* gr */

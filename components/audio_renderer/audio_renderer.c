@@ -545,7 +545,7 @@ bool  init_i2s(/*renderer_config_t *config*/)
 
 	
     i2s_mode_t mode = I2S_MODE_MASTER | I2S_MODE_TX;
-    i2s_comm_format_t comm_fmt = I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB;
+    i2s_comm_format_t comm_fmt = I2S_COMM_FORMAT_STAND_I2S ;
 	i2s_bits_per_sample_t bit_depth = config->bit_depth;
 	int sample_rate = config->sample_rate;
     int use_apll = 0;
@@ -556,12 +556,12 @@ bool  init_i2s(/*renderer_config_t *config*/)
     {
 		config->bit_depth = I2S_BITS_PER_SAMPLE_16BIT;
         mode = mode | I2S_MODE_DAC_BUILT_IN;
-        comm_fmt = I2S_COMM_FORMAT_I2S_MSB;
+ //       comm_fmt = I2S_COMM_FORMAT_I2S_MSB;
     }
     else if(config->output_mode == PDM)
     {
         mode = mode | I2S_MODE_PDM;
-		comm_fmt = I2S_COMM_FORMAT_PCM | I2S_COMM_FORMAT_PCM_SHORT;
+		comm_fmt = I2S_COMM_FORMAT_STAND_PCM_SHORT;
     }
     else if(config->output_mode == SPDIF)
     {
@@ -589,7 +589,7 @@ bool  init_i2s(/*renderer_config_t *config*/)
      * 16 bit: 32 * 256 = 8192 bytes
      * 32 bit: 32 * 256 = 16384 bytes
      */
-	int bc = bigSram()?10:8;
+	int bc = bigSram()?8:8;
     i2s_config_t i2s_config = {
             .mode = mode,          // Only TX
             .sample_rate = sample_rate,
@@ -597,10 +597,10 @@ bool  init_i2s(/*renderer_config_t *config*/)
             .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,   // 2-channels
             .communication_format = comm_fmt,
             .dma_buf_count = bc,                            // number of buffers, 128 max.  16
-//            .dma_buf_len = bigSram()?256:128,                          // size of each buffer 128
-            .dma_buf_len = 512,      // size of each buffer 128
-//           .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,        // lowest level 1
-            .intr_alloc_flags = 0 ,        // default
+            .dma_buf_len = bigSram()?448:128,                          // size of each buffer 128
+//            .dma_buf_len = 128,      // size of each buffer 128
+           .intr_alloc_flags = ESP_INTR_FLAG_LEVEL3, 
+//            .intr_alloc_flags = 0 ,        // default
 			.tx_desc_auto_clear = true,
 			.use_apll = use_apll					
     };

@@ -339,8 +339,6 @@ Where N equals to CStreamInfo::frameSize .
 \endverbatim
 
 */
-#undef __xtensa__
-#define __xtensa__
 
 #ifndef AACDECODER_LIB_H
 #define AACDECODER_LIB_H
@@ -349,6 +347,10 @@ Where N equals to CStreamInfo::frameSize .
 #include "FDK_audio.h"
 
 #include "genericStds.h"
+
+#define AACDECODER_LIB_VL0 2
+#define AACDECODER_LIB_VL1 5
+#define AACDECODER_LIB_VL2 17
 
 /**
  * \brief  AAC decoder error codes.
