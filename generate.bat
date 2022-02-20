@@ -1,5 +1,5 @@
 cd webpage
 call generate.bat
 cd ..
-echo "make flash"
+echo "idf.py build"
 call idf.py build

@@ -16,7 +16,7 @@ Inspirated by:
 
 //extern const char strtWELCOME[] ;
 extern int telnetclients[NBCLIENTT];
-//#include <stdbool.h>
+
 // public:
 // init some data
 void telnetinit(void);
@@ -37,4 +37,6 @@ int telnetRead(int tsocket);
 // the telnet server task
 void telnetTask(void* pvParams) ;
 
+extern void* kmalloc(size_t memorySize);
+extern void* kcalloc(size_t elementCount, size_t elementSize);
 #endif

@@ -152,6 +152,19 @@ IRAM_ATTR void   microsCallback(void *pArg) {
 }*/
 // 
 bool bigSram() { return bigRam;}
+void* kmalloc(size_t memorySize)
+{
+	if (bigRam) return heap_caps_malloc(memorySize, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+	else return heap_caps_malloc(memorySize, MALLOC_CAP_INTERNAL  | MALLOC_CAP_8BIT);
+		
+}
+void* kcalloc(size_t elementCount, size_t elementSize)
+{
+	if (bigRam) return heap_caps_calloc(elementCount,elementSize, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+	else return heap_caps_calloc(elementCount,elementSize, MALLOC_CAP_INTERNAL  | MALLOC_CAP_8BIT);
+		
+}
+
 //-----------------------------------
 // every 500µs
 IRAM_ATTR void   msCallback(void *pArg) {
@@ -221,7 +234,7 @@ uint64_t getWake()
 
 void tsocket(const char* lab, uint32_t cnt)
 {
-		char* title = malloc(strlen(lab)+50);
+		char* title = kmalloc(strlen(lab)+50);
 		sprintf(title,"{\"%s\":\"%d\"}",lab,cnt*60); 
 		websocketbroadcast(title, strlen(title));
 		free(title);	
@@ -311,7 +324,7 @@ timer_config_t config;
 // Renderer config creation
 static renderer_config_t *create_renderer_config()
 {
-    renderer_config_t *renderer_config = calloc(1, sizeof(renderer_config_t));
+    renderer_config_t *renderer_config = kcalloc(1, sizeof(renderer_config_t));
 
     if(renderer_config->output_mode == I2S_MERUS) {
         renderer_config->bit_depth = I2S_BITS_PER_SAMPLE_32BIT;
@@ -1122,12 +1135,12 @@ void app_main()
 	ESP_ERROR_CHECK(mdns_service_add(NULL, "_telnet", "_tcp", 23, NULL, 0));	
 
     // init player config
-    player_config = (player_t*)calloc(1, sizeof(player_t));
+    player_config = (player_t*)kcalloc(1, sizeof(player_t));
     player_config->command = CMD_NONE;
     player_config->decoder_status = UNINITIALIZED;
     player_config->decoder_command = CMD_NONE;
     player_config->buffer_pref = BUF_PREF_SAFE;
-    player_config->media_stream = calloc(1, sizeof(media_stream_t));
+    player_config->media_stream = kcalloc(1, sizeof(media_stream_t));
 
 	audio_player_init(player_config);	  
 	renderer_init(create_renderer_config());

@@ -31,7 +31,7 @@ uint8_t rexp; // expansion ports for esplay
 
 Button_t* ClickButtonsInit(int8_t A, int8_t B, int8_t C, bool Active)
 {
-	Button_t* enc = malloc(sizeof(Button_t));
+	Button_t* enc = kmalloc(sizeof(Button_t));
 	enc->pinBTN[0] = A; 
 	enc->pinBTN[1] = B;
 	enc->pinBTN[2] = C;
@@ -74,7 +74,7 @@ Button_t* ClickButtonsInit(int8_t A, int8_t B, int8_t C, bool Active)
 //Buttons on a gpio expander
 Button_t* ClickexpButtonsInit(int8_t A, int8_t B, int8_t C, bool Active)
 {
-	Button_t* enc = malloc(sizeof(Button_t));
+	Button_t* enc = kmalloc(sizeof(Button_t));
 	enc->pinBTN[0] = A; 
 	enc->pinBTN[1] = B;
 	enc->pinBTN[2] = C;

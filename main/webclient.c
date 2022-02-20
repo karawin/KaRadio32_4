@@ -55,7 +55,7 @@ static char CLIPLAY[]  = {"##CLI.PLAYING#%c%c"};
 static char CLISTOP[]  = {"##CLI.STOPPED# from %s\n"};
 
 #define strcMALLOC  	"Client: incmalloc fails for %d"
-#define strcMALLOC1  	"%s malloc fails"
+#define strcMALLOC1  	"%s kmalloc fails"
 
 #define URLMAX	256
 #define PATHMAX	512
@@ -77,11 +77,11 @@ static char* pseudoUtf8(char* str,int *len);
 void *incmalloc(size_t n)
 {
 	void* ret;
-//printf ("Client malloc of %d %d,  Heap size: %d\n",n,((n / 32) + 1) * 32,xPortGetFreeHeapSize( ));
-	ret = malloc(n);
+//printf ("Client kmalloc of %d %d,  Heap size: %d\n",n,((n / 32) + 1) * 32,xPortGetFreeHeapSize( ));
+	ret = kmalloc(n);
 	if (ret == NULL) ESP_LOGV(TAG,strcMALLOC,n);
 //	if (n <4) printf("Client: incmalloc size:%d\n",n);
-	ESP_LOGV(TAG,"Client malloc after of %d bytes ret:%x  Heap size: %d",n,(int)ret,xPortGetFreeHeapSize( ));
+	ESP_LOGV(TAG,"Client kmalloc after of %d bytes ret:%x  Heap size: %d",n,(int)ret,xPortGetFreeHeapSize( ));
 	return ret;
 }
 void incfree(void *p,const char* from)
@@ -141,7 +141,6 @@ void ramSinit()
 	}
 	spiRamFifoDestroy();
 	ESP_LOGI(TAG, "Set Song buffer to %dk",getSPIRAMSIZE()/1024);
-	vTaskDelay(1);
 	if (!spiRamFifoInit())
 	{
 		vTaskDelay(100);
@@ -227,7 +226,7 @@ char * string_rec ;
 
 if (strstr(string,"&#") != NULL)
 {
-string_rec  = calloc(strlen(string)+1, sizeof(uint8_t));
+string_rec  = kcalloc(strlen(string)+1, sizeof(uint8_t));
   while (strstr(string,"&#") != NULL){
     len = strcspn(string, "&#");
     if(len == 0){l=1;}
@@ -634,7 +633,7 @@ void wsMonitor()
 	char *answer;
 	uint16_t len;
 	len = strlen(clientURL)+strlen(clientPath)+30;
-	answer= malloc(len);
+	answer= kmalloc(len);
 	if (answer)
 	{
 		memset(answer,0,len);

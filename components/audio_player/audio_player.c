@@ -22,9 +22,8 @@
 #include "webclient.h"
 #include "vs1053.h"
 #include "app_main.h"
-#include "audio_renderer.h"
 
-#define TAG "Audio_player"
+#define TAG "audio_player"
 //#define PRIO_MAD configMAX_PRIORITIES - 4
 
 
@@ -58,9 +57,9 @@ static int start_decoder_task(player_t *player)
         case OCTET_STREAM: // probably .aac
 			if (!bigSram())
 			{
-				ESP_LOGE(TAG, "aac mime not supported on WROOM cpu, type: %d", player->media_stream->content_type);
+				ESP_LOGE(TAG, "aac not supported on WROOM cpu");
 				spiRamFifoReset();
-				clientDisconnect("AAC Not played");
+				clientDisconnect("no AAC");
 				return -1;				
 			}
 		
@@ -117,7 +116,7 @@ int audio_stream_consumer(const char *recv_buf, ssize_t bytes_read)
 			t = 0;
 		// buffer is filled, start decoder
 			if (start_decoder_task(player_instance) != 0) {
-				ESP_LOGE(TAG, "failed to start decoder task");
+				ESP_LOGE(TAG, "Decoder task failed");
 				audio_player_stop();
 				clientDisconnect("decoder failed"); 
 				return -1;

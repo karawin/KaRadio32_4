@@ -1357,7 +1357,7 @@ void addonParse(const char *fmt, ...)
 	char *line = NULL;
 //	char* lfmt;
 	int rlen;
-	line = (char *)malloc(1024);
+	line = (char *)kmalloc(1024);
 	if (line == NULL) return;
 	line[0] = 0;
 	strcpy(line,"ok\n");
@@ -1376,21 +1376,21 @@ void addonParse(const char *fmt, ...)
    if ((ici=strstr(line,"META#: ")) != NULL)
    {     
 		evt.lcmd = lmeta;
-		evt.lline = malloc(strlen(ici)+1);
+		evt.lline = kmalloc(strlen(ici)+1);
 		strcpy(evt.lline,ici);
    } else 
  ////// ICY4 Description  ##CLI.ICY4#:
     if ((ici=strstr(line,"ICY4#: ")) != NULL)
     {
 		evt.lcmd = licy4;
-		evt.lline = malloc(strlen(ici)+1);
+		evt.lline = kmalloc(strlen(ici)+1);
 		strcpy(evt.lline,ici);
     } else 
  ////// ICY0 station name   ##CLI.ICY0#:
    if ((ici=strstr(line,"ICY0#: ")) != NULL)
    {
 		evt.lcmd = licy0;
-		evt.lline = malloc(strlen(ici)+1);
+		evt.lline = kmalloc(strlen(ici)+1);
 		strcpy(evt.lline,ici);
    } else
  ////// STOPPED  ##CLI.STOPPED#  
@@ -1405,7 +1405,7 @@ void addonParse(const char *fmt, ...)
    if ((ici=strstr(line,"MESET#: ")) != NULL)  
    {   
 	  	evt.lcmd = lnameset;
-		evt.lline = malloc(strlen(ici)+1);
+		evt.lline = kmalloc(strlen(ici)+1);
 		strcpy(evt.lline,ici);
    } else
  //////Playing    ##CLI.PLAYING#

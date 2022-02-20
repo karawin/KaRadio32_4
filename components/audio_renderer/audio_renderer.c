@@ -21,9 +21,9 @@
 #include "app_main.h"
 #include "MerusAudio.h"
 
-#include "freertos/FreeRTOS.h"
+//#include "freertos/FreeRTOS.h"
 
-#include "common_component.h"
+//#include "common_component.h"
 
 
 #include "audio_player.h"
@@ -171,12 +171,12 @@ static void render_i2s_samples(char *buf, uint32_t buf_len, pcm_format_t *buf_de
         size_t bytes_written = 0;
         while((bytes_left > 0) ) {//&& (renderer_status == RUNNING)) {
             res = i2s_write(renderer_instance->i2s_num, buf, bytes_left,& bytes_written,3);
-			if (res != ESP_OK) {
+/*			if (res != ESP_OK) {
 				ESP_LOGE(TAG, "i2s_write error %d",res);
-			}
+			} */
             bytes_left -= bytes_written;
             buf += bytes_written;
-			if (bytes_left != 0) printf("%d/%d\n",bytes_written,buf_len);
+//			if (bytes_left != 0) printf("%d/%d\n",bytes_written,buf_len);
 			//vTaskDelay(1);
         }
 	  }
@@ -389,7 +389,7 @@ static void encode_spdif(uint32_t *spdif_buffer, int16_t *buffer, size_t num_sam
 	}
 }
 
-static void write_i2s(const void *buffer, size_t bytes_cnt)
+static void IRAM_ATTR write_i2s(const void *buffer, size_t bytes_cnt)
 {
 	uint8_t *buf = (uint8_t*)buffer;
 	size_t bytes_left = bytes_cnt;
@@ -413,7 +413,7 @@ static void write_i2s(const void *buffer, size_t bytes_cnt)
  * Original source at:
 *      https://github.com/earlephilhower/ESP8266Audio/blob/master/src/AudioOutputSPDIF.cpp
 */
-static void render_spdif_samples(const void *buf, uint32_t buf_len, pcm_format_t *buf_desc)
+static void IRAM_ATTR render_spdif_samples(const void *buf, uint32_t buf_len, pcm_format_t *buf_desc)
 {
 	//ESP_LOGI(TAG, "buf_desc: bit_depth %d format %d num_chan %d sample_rate %d", buf_desc->bit_depth, buf_desc->buffer_format, buf_desc->num_channels, buf_desc->sample_rate);
 	//    ESP_LOGV(TAG, "renderer_instance: bit_depth %d, output_mode %d", renderer_instance->bit_depth, renderer_instance->output_mode);
@@ -440,7 +440,7 @@ static void render_spdif_samples(const void *buf, uint32_t buf_len, pcm_format_t
 	
 //	ESP_LOGI(TAG, "render_spdif_samples len: %d, bytes_cnt: %d",buf_len,bytes_cnt);
 	
-	uint32_t *spdif_buffer = malloc(bytes_cnt);
+	uint32_t *spdif_buffer = heap_caps_malloc(bytes_cnt, MALLOC_CAP_DMA);
 	if (spdif_buffer == NULL)
 	{
 		ESP_LOGE(TAG, "malloc buf failed len:%d ",buf_len);
@@ -464,7 +464,7 @@ static void render_spdif_samples(const void *buf, uint32_t buf_len, pcm_format_t
 	free (spdif_buffer);
 }
 
-void render_samples(char *buf, uint32_t buf_len, pcm_format_t *buf_desc)
+void IRAM_ATTR render_samples(char *buf, uint32_t buf_len, pcm_format_t *buf_desc)
 {
     if(renderer_status != RUNNING)
         return;
@@ -576,9 +576,9 @@ bool  init_i2s(/*renderer_config_t *config*/)
 	// don't do it for PDM
 		if(out_info.revision > 0) {
 			use_apll = 1;
-			ESP_LOGI(TAG, "chip revision %d, enabling APLL", out_info.revision);
+			ESP_LOGD(TAG, "chip rev. %d, enabling APLL", out_info.revision);
 		} else
-			ESP_LOGI(TAG, "chip revision %d, cannot enable APLL", out_info.revision);
+			ESP_LOGD(TAG, "chip rev. %d, cannot enable APLL", out_info.revision);
 	}
     /*
      * Allocate just enough to decode AAC+, which has huge frame sizes.
@@ -589,7 +589,8 @@ bool  init_i2s(/*renderer_config_t *config*/)
      * 16 bit: 32 * 256 = 8192 bytes
      * 32 bit: 32 * 256 = 16384 bytes
      */
-	int bc = bigSram()?8:8;
+	int bc = bigSram()?16:8;
+	int bl = bigSram()?256:128;
     i2s_config_t i2s_config = {
             .mode = mode,          // Only TX
             .sample_rate = sample_rate,
@@ -597,10 +598,10 @@ bool  init_i2s(/*renderer_config_t *config*/)
             .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,   // 2-channels
             .communication_format = comm_fmt,
             .dma_buf_count = bc,                            // number of buffers, 128 max.  16
-            .dma_buf_len = bigSram()?448:128,                          // size of each buffer 128
+            .dma_buf_len = bl,                          // size of each buffer 128
 //            .dma_buf_len = 128,      // size of each buffer 128
-           .intr_alloc_flags = ESP_INTR_FLAG_LEVEL3, 
-//            .intr_alloc_flags = 0 ,        // default
+//           .intr_alloc_flags = ESP_INTR_FLAG_LEVEL3, 
+            .intr_alloc_flags = 0 ,        // default
 			.tx_desc_auto_clear = true,
 			.use_apll = use_apll					
     };
@@ -656,4 +657,3 @@ bool  init_i2s(/*renderer_config_t *config*/)
     i2s_stop(config->i2s_num);
 	return true;
 }
-
