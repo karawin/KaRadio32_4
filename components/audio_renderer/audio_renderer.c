@@ -29,7 +29,7 @@
 #include "audio_player.h"
 #include "audio_renderer.h"
 
-#define TAG "renderer"
+#define TAG "Renderer"
 
 
 static renderer_config_t *renderer_instance = NULL;
@@ -555,8 +555,8 @@ bool  init_i2s(/*renderer_config_t *config*/)
     if(config->output_mode == DAC_BUILT_IN)
     {
 		config->bit_depth = I2S_BITS_PER_SAMPLE_16BIT;
-        mode = mode | I2S_MODE_DAC_BUILT_IN;
- //       comm_fmt = I2S_COMM_FORMAT_I2S_MSB;
+        mode = mode | I2S_MODE_DAC_BUILT_IN ;
+        comm_fmt = I2S_COMM_FORMAT_STAND_MSB;
     }
     else if(config->output_mode == PDM)
     {
@@ -621,7 +621,7 @@ bool  init_i2s(/*renderer_config_t *config*/)
 
     if (i2s_driver_install(config->i2s_num, &i2s_config, 0, NULL) != ESP_OK)
 	{
-		i2s_config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1;
+		i2s_config.intr_alloc_flags = 0;//ESP_INTR_FLAG_LEVEL1;
 		if (i2s_driver_install(config->i2s_num, &i2s_config, 0, NULL) != ESP_OK)
 			i2s_config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL2;
 			if (i2s_driver_install(config->i2s_num, &i2s_config, 0, NULL) != ESP_OK)
@@ -633,7 +633,7 @@ bool  init_i2s(/*renderer_config_t *config*/)
 			}
 	}	
 //	ESP_LOGI(TAG,"i2s intr:%d", i2s_config.intr_alloc_flags);	
-    if(config->output_mode == DAC_BUILT_IN)// || (mode & I2S_MODE_PDM))
+   if(config->output_mode == DAC_BUILT_IN)
     {
         i2s_set_pin(config->i2s_num, NULL);
 //        i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
