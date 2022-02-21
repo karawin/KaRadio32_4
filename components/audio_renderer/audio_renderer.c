@@ -617,7 +617,7 @@ bool  init_i2s(/*renderer_config_t *config*/)
 				.data_out_num = i2sdata,
 				.data_in_num = I2S_PIN_NO_CHANGE
 	};
-	ESP_LOGD(TAG, "mode:%d, sample_rate:%d, bit_depth:%d, comm:%d,  data:%d",mode,sample_rate,bit_depth,comm_fmt,i2sdata);
+	ESP_LOGI(TAG, "mode:%d, sample_rate:%d, bit_depth:%d, comm:%d,  data:%d",mode,sample_rate,bit_depth,comm_fmt,i2sdata);
 
     if (i2s_driver_install(config->i2s_num, &i2s_config, 0, NULL) != ESP_OK)
 	{
