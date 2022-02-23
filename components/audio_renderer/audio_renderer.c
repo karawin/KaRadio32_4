@@ -303,12 +303,12 @@ static bool set_sample_rate(int hz)
   renderer_instance->sample_rate = hz;
   int adjustedHz = 2 * hz;
   if (i2s_set_sample_rates(renderer_instance->i2s_num, adjustedHz) == ESP_OK) {
-    if (adjustedHz == 88200) {
+/*    if (adjustedHz == 88200) {  // for sdk 3.5 only
       // Manually fix the APLL rate for 44100.
       // See: https://github.com/espressif/esp-idf/issues/2634
       // sdm0 = 28, sdm1 = 8, sdm2 = 5, odir = 0 -> 88199.977
       rtc_clk_apll_enable(1, 28, 8, 5, 0);
-    }
+    }*/
   } else {
 	  ESP_LOGE(TAG, "ERROR changing S/PDIF sample rate");
   }

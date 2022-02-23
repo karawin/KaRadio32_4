@@ -91,7 +91,7 @@ void xpt_init()
 }
 
 
-uint16_t xpt_get_data(uint8_t addressbyte){
+uint16_t IRAM_ATTR xpt_get_data(uint8_t addressbyte){
 	uint16_t result;
     uint8_t datas[3] = {0};
     datas[0] = addressbyte;
@@ -110,7 +110,7 @@ uint16_t xpt_get_data(uint8_t addressbyte){
 
 
 //-----------------------------------------------
-static int tp_get_data(uint8_t type, int samples)
+static int IRAM_ATTR tp_get_data(uint8_t type, int samples)
 {
 	int n, result, val = 0;
 	uint32_t i = 0;
@@ -173,7 +173,7 @@ static int tp_get_data(uint8_t type, int samples)
 }
 
 //=============================================
-bool xpt_read_touch(int *x, int* y, uint8_t raw)
+bool IRAM_ATTR xpt_read_touch(int *x, int* y, uint8_t raw)
 {
 	if (inCalibrate) return false;
 	int result = -1;
