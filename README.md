@@ -1,9 +1,7 @@
 ## STATE
-Release 2.2 R1 Stable
-
-Verson adapted to ESP_IDF 4.4
-Work in progress, do not use.
-
+Release 2.2 R2 Stable  
+Verson adapted to ESP_IDF 4.4 Work in progress.  
+  
 Works on any esp32 board.  
 See the boards directory for a list of pre-configured boards.  
 See : [Hardware configuration partition](HardwareConfig.md)
@@ -63,7 +61,6 @@ Output mode set in Setting panel on web page of KaraDio32 :
 - Remote IR support integrated. Nec protocol only.
 - Two configurable access points .
 - OTA (Over The Air) update of the software.
-- Uses a 40 kB (I2S), 50 kB (vs1053) or 420 Kb (wrover) queue to provide smooth playback.
 - many more configurable parameters. See [Interfaces document](Interface.md )  
 
 
@@ -76,8 +73,8 @@ Output mode set in Setting panel on web page of KaraDio32 :
 ### Buffering audio
 |   CPU        |  vs1053b      |  other |  
 | -------      | -------       | ------ |  
-| Wroom http   | 50k           | 40k    |  
-| Wroom https  | 40k           | 25k    |  
+| Wroom http   | 60k           | 45k    |  
+| Wroom https  | 50k           | 25k    |  
 | Wrover http  | 400k          | 400k   |  
 | Wrover https | 400k          | 400k   |  
 
@@ -91,35 +88,43 @@ For a wrover cpu you need a csv file with psram in the name. Without it, the def
 
 ## Build your own
 =======  
-To build your own release if you want to do some improvments, you must install the idf https://github.com/espressif/esp-idf and the toolchain. The esp-idf release is the 3.3.5  
+To build your own release if you want to do some improvments, you must install the idf https://github.com/espressif/esp-idf and the toolchain. The esp-idf release is the 4.4   
 
 ### ESP-IDF Patch
-Since the 3.3.5 and upper releases there is a bug with CONFIG_SPIRAM_IGNORE_NOTFOUND 
-You need to patch the esp\esp-idf\components\esp32\spiram.c line 128 to  
-```
-esp_spiram_size_t esp_spiram_get_chip_size()
-{
-    if (!spiram_inited) {
-#if CONFIG_SPIRAM_IGNORE_NOTFOUND
-         ESP_EARLY_LOGE(TAG, "SPI RAM not initialized");
-		 return ESP_SPIRAM_SIZE_INVALID;
-#endif		
-		 abort();
-    }
-```
-See https://github.com/espressif/esp-idf/issues/6063#issuecomment-1010899552  
-  
+For the DAC output mode, the ESP_IDF must be patched.  
+#### DAC output:   
+``` @@ -983,9 +983,9 @@ static esp_err_t i2s_calculate_adc_dac_clock(int i2s_num, i2s_hal_clock_cfg_t *c
+    ESP_RETURN_ON_FALSE(p_i2s[i2s_num]->hal_cfg.mode & (I2S_MODE_DAC_BUILT_IN | I2S_MODE_ADC_BUILT_IN), ESP_ERR_INVALID_ARG, TAG, "current mode is not built-in ADC/DAC");
 
-To flash all build output, run 'make flash' or :
+    /* Set I2S bit clock */
+    - clk_cfg->bclk = p_i2s[i2s_num]->hal_cfg.sample_rate * I2S_LL_AD_BCK_FACTOR * 2;
+    + clk_cfg->bclk = p_i2s[i2s_num]->hal_cfg.sample_rate * I2S_LL_AD_BCK_FACTOR;
+    /* Set I2S bit clock default division */
+    - clk_cfg->bclk_div = I2S_LL_AD_BCK_FACTOR;
+    + clk_cfg->bclk_div = I2S_LL_AD_BCK_FACTOR * 16;
+    /* If fixed_mclk and use_apll are set, use fixed_mclk as mclk frequency, otherwise calculate by mclk = sample_rate * multiple */
+    clk_cfg->mclk = (p_i2s[i2s_num]->use_apll && p_i2s[i2s_num]->fixed_mclk) ?
+                    p_i2s[i2s_num]->fixed_mclk : clk_cfg->bclk * clk_cfg->bclk_div;
+```
+See https://github.com/espressif/esp-idf/pull/8327/files  
+
+To build output, run 'idf.py build' 
 
 ```
-python /home/yourhome/esp/esp-idf/components/esptool_py/esptool/esptool.py \
-   --chip esp32 --port com5 --baud 460800 --before default_reset \
-   --after hard_reset write_flash -u --flash_mode dio \
-   --flash_freq 40m --flash_size detect \
-   0x1000 /home/yourhome/esp/Ka-Radio32/build/bootloader/bootloader.bin \
-   0x10000 /home/yourhome/esp/Ka-Radio32/build/KaRadio32.bin \
-   0x8000 /home/yourhome/esp/Ka-Radio32/build/partitions.bin
+C:\Users\jp\esp\KaRadio32_4>idf.py build
+Executing action: all (aliases: build)
+Running ninja in directory c:\users\jp\esp\karadio32_4\build
+Executing "ninja all"...
+[1/4] cmd.exe /C "cd /D C:\Users\jp\esp\KaRadio32_4\build\esp-idf\esptool_py && C:\Espressif\pyt...o32_4/build/partition_table/partition-table.bin C:/Users/jp/esp/KaRadio32_4/build/KaRadio32.bin"
+KaRadio32.bin binary size 0x17d780 bytes. Smallest app partition is 0x1c0000 bytes. 0x42880 bytes (15%) free.
+[2/4] Performing build step for 'bootloader'
+[1/1] cmd.exe /C "cd /D C:\Users\jp\esp\KaRadio32_4\build\bootloader\esp-idf\esptool_py && C:\Espressif\python_env\idf4.4_py3.8_env\Scripts\python.exe C:/Espressif/frameworks/esp-idf-v4.4/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 C:/Users/jp/esp/KaRadio32_4/build/bootloader/bootloader.bin"
+Bootloader binary size 0x57f0 bytes. 0x1810 bytes (21%) free.
+
+Project build complete. To flash, run this command:
+C:\Espressif\python_env\idf4.4_py3.8_env\Scripts\python.exe ..\..\..\..\Espressif\frameworks\esp-idf-v4.4\components\esptool_py\esptool\esptool.py -p (PORT) -b 460800 --before default_reset --after hard_reset --chip esp32  write_flash --flash_mode dio --flash_size detect --flash_freq 40m 0x1000 build\bootloader\bootloader.bin 0x8000 build\partition_table\partition-table.bin 0xd000 build\ota_data_initial.bin 0x10000 build\KaRadio32.bin
+or run 'idf.py -p (PORT) flash'
+
 ```
 ## GPIO Definition 
 The default configuration is given below. It includes an encoder, an IR remote and a LCD or OLED.  
