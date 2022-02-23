@@ -1,5 +1,5 @@
 ## STATE
-Release 2.2 R2 Stable  
+Release 2.3 R0 Stable  
 Verson adapted to ESP_IDF 4.4 Work in progress.  
   
 Works on any esp32 board.  
