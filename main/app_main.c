@@ -83,6 +83,7 @@ Copyright (C) 2017  KaraWin
 #include "vs1053.h"
 #include "ClickEncoder.h"
 #include "addon.h"
+#include "esp_idf_version.h"							
 
 //#include "rda5807Task.h"
 
@@ -171,8 +172,13 @@ IRAM_ATTR void   msCallback(void *pArg) {
 	int timer_idx = (int) pArg;
 	queue_event_t evt;	
 //	queue_event_t evt;	
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+	TIMERG1.hw_timer[timer_idx].update.tx_update = 1;
+	TIMERG1.int_clr_timers.t0_int_clr = 1; //isr ack
+#else
 	TIMERG1.hw_timer[timer_idx].update = 1;
 	TIMERG1.int_clr_timers.t0 = 1; //isr ack
+#endif		
 	evt.type = TIMER_1MS;
     evt.i1 = TIMERGROUP;
     evt.i2 = timer_idx;
@@ -187,29 +193,49 @@ IRAM_ATTR void   msCallback(void *pArg) {
 	divide = !divide;
 	*/
 //	if (serviceAddon != NULL) serviceAddon(); // for the encoders and buttons
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+	TIMERG1.hw_timer[timer_idx].config.tx_alarm_en = 1;
+#else
 	TIMERG1.hw_timer[timer_idx].config.alarm_en = 1;
+#endif	
 }
 
 void   sleepCallback(void *pArg) {
 	int timer_idx = (int) pArg;
-	queue_event_t evt;	
+	queue_event_t evt;					
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+	TIMERG0.int_clr_timers.t0_int_clr = 1; //isr ack
+#else
 	TIMERG0.int_clr_timers.t0 = 1; //isr ack
+#endif	
 		evt.type = TIMER_SLEEP;
         evt.i1 = TIMERGROUP;
         evt.i2 = timer_idx;
 	xQueueSendFromISR(event_queue, &evt, NULL);	
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+	TIMERG0.hw_timer[timer_idx].config.tx_alarm_en = 0;
+#else
 	TIMERG0.hw_timer[timer_idx].config.alarm_en = 0;
+#endif	
 }
 void   wakeCallback(void *pArg) {
 
 	int timer_idx = (int) pArg;
 	queue_event_t evt;	
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+	TIMERG0.int_clr_timers.t1_int_clr = 1;
+#else
 	TIMERG0.int_clr_timers.t1 = 1;
+#endif	
         evt.i1 = TIMERGROUP;
         evt.i2 = timer_idx;
 		evt.type = TIMER_WAKE;
 	xQueueSendFromISR(event_queue, &evt, NULL);
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+	TIMERG0.hw_timer[timer_idx].config.tx_alarm_en  = 0;
+#else
 	TIMERG0.hw_timer[timer_idx].config.alarm_en = 0;
+#endif	
 }
 	
 

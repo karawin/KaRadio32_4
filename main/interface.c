@@ -1505,8 +1505,8 @@ void checkCommand(int size, char* s)
 		else if(strcmp(tmp+4, "heap") == 0) 	heapSize();
 		else if(strcmp(tmp+4, "boot") == 0) 	esp_restart();
 		else if(strcmp(tmp+4, "conf") == 0) 	sys_conf();
-		else if(strcmp(tmp+4, "update") == 0) 	update_firmware((char*)"KaRadio32");
-		else if(strcmp(tmp+4, "prerelease") == 0) 	update_firmware((char*)"KaRadio32prv");
+		else if(strcmp(tmp+4, "update") == 0) 	update_firmware((char*)"KaRadio32_4");
+		else if(strcmp(tmp+4, "prerelease") == 0) 	update_firmware((char*)"KaRadio32_4prv");
 		else if(startsWith (  "patch",tmp+4)) 	syspatch(tmp);
 		else if(startsWith (  "ledg",tmp+4)) 	sysledgpio(tmp); //ledgpio
 		else if(startsWith (  "ledpol",tmp+4)) 	sysledpol(tmp);
