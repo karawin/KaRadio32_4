@@ -88,7 +88,8 @@ For a wrover cpu you need a csv file with psram in the name. Without it, the def
 
 ## Build your own
 =======  
-To build your own release if you want to do some improvments, you must install the idf https://github.com/espressif/esp-idf and the toolchain. The esp-idf release is the 4.4   
+To build your own release if you want to do some improvments, you must install the idf https://github.com/espressif/esp-idf and the toolchain. The esp-idf release is the 4.4 minimum.  
+See https://idf.espressif.com/index.html  
 
 ### ESP-IDF Patch
 For the DAC output mode, the ESP_IDF must be patched.  
@@ -115,14 +116,18 @@ C:\Users\jp\esp\KaRadio32_4>idf.py build
 Executing action: all (aliases: build)
 Running ninja in directory c:\users\jp\esp\karadio32_4\build
 Executing "ninja all"...
-[1/4] cmd.exe /C "cd /D C:\Users\jp\esp\KaRadio32_4\build\esp-idf\esptool_py && C:\Espressif\pyt...o32_4/build/partition_table/partition-table.bin C:/Users/jp/esp/KaRadio32_4/build/KaRadio32.bin"
-KaRadio32.bin binary size 0x17d780 bytes. Smallest app partition is 0x1c0000 bytes. 0x42880 bytes (15%) free.
-[2/4] Performing build step for 'bootloader'
+[1/9] Performing build step for 'bootloader'
 [1/1] cmd.exe /C "cd /D C:\Users\jp\esp\KaRadio32_4\build\bootloader\esp-idf\esptool_py && C:\Espressif\python_env\idf4.4_py3.8_env\Scripts\python.exe C:/Espressif/frameworks/esp-idf-v4.4/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 C:/Users/jp/esp/KaRadio32_4/build/bootloader/bootloader.bin"
 Bootloader binary size 0x57f0 bytes. 0x1810 bytes (21%) free.
+[6/7] Generating binary image from built executable
+esptool.py v3.2-dev
+Merged 25 ELF sections
+Generated C:/Users/jp/esp/KaRadio32_4/build/KaRadio32_4.bin
+[7/7] cmd.exe /C "cd /D C:\Users\jp\esp\KaRadio32_4\build\esp-id...ion-table.bin C:/Users/jp/esp/KaRadio32_4/build/KaRadio32_4.bin"
+KaRadio32_4.bin binary size 0x17d790 bytes. Smallest app partition is 0x1c0000 bytes. 0x42870 bytes (15%) free.
 
 Project build complete. To flash, run this command:
-C:\Espressif\python_env\idf4.4_py3.8_env\Scripts\python.exe ..\..\..\..\Espressif\frameworks\esp-idf-v4.4\components\esptool_py\esptool\esptool.py -p (PORT) -b 460800 --before default_reset --after hard_reset --chip esp32  write_flash --flash_mode dio --flash_size detect --flash_freq 40m 0x1000 build\bootloader\bootloader.bin 0x8000 build\partition_table\partition-table.bin 0xd000 build\ota_data_initial.bin 0x10000 build\KaRadio32.bin
+C:\Espressif\python_env\idf4.4_py3.8_env\Scripts\python.exe ..\..\..\..\Espressif\frameworks\esp-idf-v4.4\components\esptool_py\esptool\esptool.py -p (PORT) -b 460800 --before default_reset --after hard_reset --chip esp32  write_flash --flash_mode dio --flash_size detect --flash_freq 40m 0x1000 build\bootloader\bootloader.bin 0x8000 build\partition_table\partition-table.bin 0xd000 build\ota_data_initial.bin 0x10000 build\KaRadio32_4.bin
 or run 'idf.py -p (PORT) flash'
 
 ```
