@@ -187,8 +187,8 @@ static void IRAM_ATTR render_i2s_samples(char *buf, uint32_t buf_len, pcm_format
     if(buf_desc->bit_depth != I2S_BITS_PER_SAMPLE_16BIT) {
         ESP_LOGD(TAG, "unsupported decoder bit depth: %d", buf_desc->bit_depth);
 		renderer_stop();
-		audio_player_stop();  				  
-        return;
+		audio_player_stop();    
+		return;
     }
 
     // pointer to left / right sample position
@@ -219,7 +219,7 @@ static void IRAM_ATTR render_i2s_samples(char *buf, uint32_t buf_len, pcm_format
 	{
 		ESP_LOGE(TAG, "malloc outBuf8 failed len:%d ",buf_len);
 		renderer_stop();
-		audio_player_stop();  			   
+		audio_player_stop(); 
 		return;
 	}
 	outBuf32 =(uint32_t*)outBuf8;
@@ -301,20 +301,20 @@ static bool set_sample_rate(int hz)
   ESP_LOGD(TAG, "changing sample rate from %d to %d", renderer_instance->sample_rate, hz);
 
   renderer_instance->sample_rate = hz;
-//  int adjustedHz = 2 * hz;
-  
-  if (i2s_set_sample_rates(renderer_instance->i2s_num, 2 * hz) != ESP_OK) {
-	  ESP_LOGE(TAG, "ERROR changing S/PDIF sample rate");
-	  return false;
-  }
-/*   else {
-		if ((2 * hz )== 88200) {  // for sdk 3.5 only
-		// Manually fix the APLL rate for 44100.
-		// See: https://github.com/espressif/esp-idf/issues/2634
-		// sdm0 = 28, sdm1 = 8, sdm2 = 5, odir = 0 -> 88199.977
+  if (i2s_set_sample_rates(renderer_instance->i2s_num, 2 *hz) != ESP_OK) {
+    if ((2 * hz) == 88200) ESP_LOGE(TAG, "ERROR changing S/PDIF sample rate");	  
+	return false;
+  }		
+#if ESP_IDF_VERSION <= ESP_IDF_VERSION_VAL(4, 0, 0)
+  else {
+	if ((2 * hz )== 88200) {  // for sdk 3.3 only
+	// Manually fix the APLL rate for 44100.
+	// See: https://github.com/espressif/esp-idf/issues/2634
+	// sdm0 = 28, sdm1 = 8, sdm2 = 5, odir = 0 -> 88199.977
 		rtc_clk_apll_enable(1, 28, 8, 5, 0);
-		}	
-	} */
+	}	  
+  }
+#endif
   return true;
 }
 
@@ -429,7 +429,7 @@ static void  render_spdif_samples(const void *buf, uint32_t buf_len, pcm_format_
 	if(buf_desc->bit_depth != I2S_BITS_PER_SAMPLE_16BIT) {
 		ESP_LOGE(TAG, "unsupported decoder bit depth: %d", buf_desc->bit_depth);
 		renderer_stop();
-		audio_player_stop();  			   
+		audio_player_stop(); 
 		return;
 	}
 //
@@ -450,7 +450,7 @@ static void  render_spdif_samples(const void *buf, uint32_t buf_len, pcm_format_
 	{
 		ESP_LOGE(TAG, "spdif buf failed len:%d ",buf_len);
 		renderer_stop();
-		audio_player_stop(); 			   
+		audio_player_stop(); 
 		return;
 	}
 
@@ -551,7 +551,12 @@ bool  init_i2s(/*renderer_config_t *config*/)
 
 	
     i2s_mode_t mode = I2S_MODE_MASTER | I2S_MODE_TX;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
     i2s_comm_format_t comm_fmt = I2S_COMM_FORMAT_STAND_I2S ;
+#else	
+    i2s_comm_format_t comm_fmt = I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB ;
+#endif	
+	
 	i2s_bits_per_sample_t bit_depth = config->bit_depth;
 	int sample_rate = config->sample_rate;
     int use_apll = 0;
@@ -561,13 +566,21 @@ bool  init_i2s(/*renderer_config_t *config*/)
     if(config->output_mode == DAC_BUILT_IN)
     {
 		config->bit_depth = I2S_BITS_PER_SAMPLE_16BIT;
-        mode = mode | I2S_MODE_DAC_BUILT_IN ;
+        mode = mode | I2S_MODE_DAC_BUILT_IN;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
         comm_fmt = I2S_COMM_FORMAT_STAND_MSB;
-    }
+#else	
+		comm_fmt = I2S_COMM_FORMAT_I2S_MSB;
+#endif
+	}
     else if(config->output_mode == PDM)
     {
         mode = mode | I2S_MODE_PDM;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
 		comm_fmt = I2S_COMM_FORMAT_STAND_PCM_SHORT;
+#else
+		comm_fmt = I2S_COMM_FORMAT_PCM | I2S_COMM_FORMAT_PCM_SHORT;
+#endif	
     }
     else if(config->output_mode == SPDIF)
     {
@@ -627,7 +640,7 @@ bool  init_i2s(/*renderer_config_t *config*/)
 
     if (i2s_driver_install(config->i2s_num, &i2s_config, 0, NULL) != ESP_OK)
 	{
-		i2s_config.intr_alloc_flags = 0;//ESP_INTR_FLAG_LEVEL1;
+		i2s_config.intr_alloc_flags = 0; //ESP_INTR_FLAG_LEVEL1;
 		if (i2s_driver_install(config->i2s_num, &i2s_config, 0, NULL) != ESP_OK)
 			i2s_config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL2;
 			if (i2s_driver_install(config->i2s_num, &i2s_config, 0, NULL) != ESP_OK)
@@ -639,7 +652,7 @@ bool  init_i2s(/*renderer_config_t *config*/)
 			}
 	}	
 //	ESP_LOGI(TAG,"i2s intr:%d", i2s_config.intr_alloc_flags);	
-   if(config->output_mode == DAC_BUILT_IN)
+    if(config->output_mode == DAC_BUILT_IN)
     {
         i2s_set_pin(config->i2s_num, NULL);
 //        i2s_set_dac_mode(I2S_DAC_CHANNEL_BOTH_EN);
