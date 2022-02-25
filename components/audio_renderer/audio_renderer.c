@@ -302,10 +302,10 @@ static bool set_sample_rate(int hz)
 
   renderer_instance->sample_rate = hz;
   if (i2s_set_sample_rates(renderer_instance->i2s_num, 2 *hz) != ESP_OK) {
-    if ((2 * hz) == 88200) ESP_LOGE(TAG, "ERROR changing S/PDIF sample rate");	  
+    ESP_LOGE(TAG, "ERROR changing S/PDIF sample rate");	  
 	return false;
   }		
-#if ESP_IDF_VERSION <= ESP_IDF_VERSION_VAL(4, 0, 0)
+#if ESP_IDF_VERSION <= ESP_IDF_VERSION_VAL(3, 0, 0)
   else {
 	if ((2 * hz )== 88200) {  // for sdk 3.3 only
 	// Manually fix the APLL rate for 44100.
