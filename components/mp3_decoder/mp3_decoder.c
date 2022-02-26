@@ -27,7 +27,7 @@
 #include "mp3_decoder.h"
 #include "common_buffer.h"
 
-#define TAG "decoder"
+#define TAG "Mp3_Decoder"
 
 // The theoretical maximum frame size is 2881 bytes,
 // MPEG 2.5 Layer II, 8000 Hz @ 160 kbps, with a padding slot plus 8 byte MAD_BUFFER_GUARD.
@@ -75,7 +75,7 @@ static enum mad_flow input(struct mad_stream *stream, buffer_t *buf, player_t *p
 
             //Wait until there is enough data in the buffer. This only happens when the data feed
             //rate is too low, and shouldn't normally be needed!
-            ESP_LOGD(TAG, "Buffer underflow, need %d bytes.", buf_free_capacity(buf));
+            ESP_LOGV(TAG, "Buffer underflow, need %d bytes.", buf_free_capacity(buf));
 //           ESP_LOGD(TAG, "Buffer underflow, need %d bytes.", buf_free_capacity_after_purge(buf));
  
 			buf_underrun_cnt++;
