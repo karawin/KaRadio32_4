@@ -9,20 +9,19 @@
 #include <inttypes.h>
 #include <string.h>
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
-
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "esp_log.h"
 #include "soc/timer_group_struct.h"
 #include "soc/timer_group_reg.h"
-#include "driver/i2s.h"
 
 #include "common_buffer.h"
 #include "aacdecoder_lib.h"
 #include "audio_player.h"
 #include "app_main.h"
 #include "esp_idf_version.h"
+#include "driver/i2s.h"
 #define TAG "Fdkaac_decoder"
 
 

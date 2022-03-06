@@ -174,6 +174,7 @@ void* kcalloc(size_t elementCount, size_t elementSize)
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 static bool msCallback(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx)
 {
+	BaseType_t high_task_awoken = pdFALSE;
 	xQueueHandle event_qu = (xQueueHandle)user_ctx;
 	queue_event_t evt;	
 	evt.type = TIMER_1MS;
@@ -181,7 +182,7 @@ static bool msCallback(gptimer_handle_t timer, const gptimer_alarm_event_data_t 
     evt.i2 = 0;
 	xQueueSendFromISR(event_qu, &evt, NULL);	
 	if (serviceAddon != NULL) serviceAddon(); // for the encoders and buttons
-	return true;
+	return high_task_awoken == pdTRUE;
 }
 #else
 //-----------------------------------
@@ -205,9 +206,9 @@ IRAM_ATTR void   msCallback(void *pArg) {
 static bool sleepCallback(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx)
 {
 	BaseType_t high_task_awoken = pdFALSE;
+	gptimer_stop(timer);	
 	xQueueHandle event_qu = (xQueueHandle)user_ctx;
 	queue_event_t evt;	
-	gptimer_stop(timer);	
 	evt.type = TIMER_SLEEP;
     evt.i1 = 0;
     evt.i2 = 0;
@@ -230,9 +231,9 @@ void   sleepCallback(void *pArg) {
 static bool wakeCallback(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx)
 {
 	BaseType_t high_task_awoken = pdFALSE;
+	gptimer_stop(timer);	
 	xQueueHandle event_qu = (xQueueHandle)user_ctx;
 	queue_event_t evt;	
-	gptimer_stop(timer);	
 	evt.type = TIMER_WAKE;
     evt.i1 = 0;
     evt.i2 = 0;

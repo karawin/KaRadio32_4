@@ -42,12 +42,12 @@
 #endif
 
 #if ESP_IDF_VERSION_MAJOR >= 5
- #include "esp_private/periph_ctrl.h"
+#include "esp_private/periph_ctrl.h"
 #else
- #include "driver/periph_ctrl.h"
+#include <driver/periph_ctrl.h>
 #endif
 
-#if ESP_IDF_VERSION_MAJOR >= 4
+#if ESP_IDF_VERSION_MAJOR >= 4 && ESP_IDF_VERSION_MINOR >= 1
  #include <esp32/rom/ets_sys.h>
 #else
  #include <rom/ets_sys.h>
@@ -63,7 +63,7 @@ int esp_CryptHwMutexUnLock(wolfSSL_Mutex* mutex);
 
 #ifndef NO_AES
 
-#if ESP_IDF_VERSION_MAJOR >= 4
+#if ESP_IDF_VERSION_MAJOR >= 4 && ESP_IDF_VERSION_MINOR >= 1
 #include "esp32/rom/aes.h"
 #else
 #include "rom/aes.h"
@@ -98,7 +98,7 @@ uint64_t  wc_esp32elapsedTime();
 /* RAW hash function APIs are not implemented with esp32 hardware acceleration*/
 #define WOLFSSL_NO_HASH_RAW
 #define SHA_CTX ETS_SHAContext
-#if ESP_IDF_VERSION_MAJOR >= 4
+#if ESP_IDF_VERSION_MAJOR >= 4 && ESP_IDF_VERSION_MINOR >= 1
 #include "esp32/rom/sha.h"
 #else
 #include "rom/sha.h"

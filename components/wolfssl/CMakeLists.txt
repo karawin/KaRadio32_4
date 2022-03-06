@@ -84,9 +84,10 @@ idf_component_register(SRCS
     "wolfcrypt/src/port/Espressif/esp32_mp.c"
     "wolfcrypt/src/port/Espressif/esp32_sha.c"
     "wolfcrypt/src/port/atmel/atmel.c"
-                    INCLUDE_DIRS 
+    INCLUDE_DIRS 
 	"include/"
 	"."
+	PRIV_REQUIRES   "driver"	
 					)
 component_compile_options(-Wno-error=unused-label -Wno-error=return-type -Wno-error=missing-braces 
 -Wno-error=pointer-sign -Wno-error=parentheses -Wno-error=maybe-uninitialized -DWOLFSSL_USER_SETTINGS -DWOLFSSL_STATIC_RSA )
