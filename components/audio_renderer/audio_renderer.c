@@ -20,18 +20,10 @@
 #include "gpio.h"
 #include "app_main.h"
 #include "MerusAudio.h"
-
-//#include "freertos/FreeRTOS.h"
-
-//#include "common_component.h"
-
-
 #include "audio_player.h"
 #include "audio_renderer.h"
 
 #define TAG "Renderer"
-//https://github.com/amedes/esp_a2dp_sink_spdif/blob/master/main/spdif.c
-//#define I2S_BUG_MAGIC		(26 * 1000 * 1000)	// magic number for avoiding I2S bug
 
 static renderer_config_t *renderer_instance = NULL;
 static component_status_t renderer_status = UNINITIALIZED;
@@ -125,9 +117,6 @@ static void IRAM_ATTR write_i2s(const void *buffer, size_t bytes_cnt)
  */
 static void IRAM_ATTR render_i2s_samples(char *buf, uint32_t buf_len, pcm_format_t *buf_desc)
 {
-//    ESP_LOGV(TAG, "buf_desc: bit_depth %d format %d num_chan %d sample_rate %d", buf_desc->bit_depth, buf_desc->buffer_format, buf_desc->num_channels, buf_desc->sample_rate);
-//    ESP_LOGV(TAG, "renderer_instance: bit_depth %d, output_mode %d", renderer_instance->bit_depth, renderer_instance->output_mode);
-	 //ESP_LOGI(TAG, "render_samples len: %d",buf_len);
 	register int res = ESP_OK;
 	uint8_t* outBuf8;
 	uint32_t* outBuf32;
@@ -151,7 +140,7 @@ static void IRAM_ATTR render_i2s_samples(char *buf, uint32_t buf_len, pcm_format
 //KaraDio32 Volume control
 	uint32_t mult = renderer_instance->volume;
 	
-	if ((mult!= 0x10000)) // && (renderer_instance->output_mode != DAC_BUILT_IN) && (renderer_instance->output_mode != PDM))// need volume?
+	if ((mult!= 0x10000)) 
 	{	
 		uint32_t pmax= num_samples*buf_desc->num_channels;
 		if (buf_bytes_per_sample ==2)
@@ -174,8 +163,6 @@ static void IRAM_ATTR render_i2s_samples(char *buf, uint32_t buf_len, pcm_format
 	}
 
 //-------------------------
-//ESP_LOGD(TAG, "I2S CHECK:  buf_desc->bit_depth %d, renderer_instance->bit_depth %d, buf_desc->buffer_format %d, PCM_INTERLEAVED %d, buf_desc->num_channels %d (2), renderer_instance->output_mode %d, DAC_BUILT_IN %d ",buf_desc->bit_depth,renderer_instance->bit_depth,buf_desc->buffer_format,PCM_INTERLEAVED,buf_desc->num_channels,renderer_instance->output_mode,DAC_BUILT_IN);
-
     // formats match, we can write the whole block
     if (buf_desc->bit_depth == renderer_instance->bit_depth
             && buf_desc->buffer_format == PCM_INTERLEAVED
@@ -280,10 +267,7 @@ static void IRAM_ATTR render_i2s_samples(char *buf, uint32_t buf_len, pcm_format
         ptr_r += stride;
         ptr_l += stride;
     }
-//
-// har-in-air correction	
-//	TickType_t max_wait = buf_desc->sample_rate / num_samples / 2;
-//    TickType_t max_wait =portMAX_DELAY/2;// portTICK_PERIOD_MS; // portMAX_DELAY = bad idea
+//	
 //	ESP_LOGI(TAG, "I2S write from %x for %d bytes", (uint32_t)outBuf8, bytes_left);
 	uint8_t* iobuf = outBuf8;
 	write_i2s(iobuf,outBufBytes);
@@ -303,14 +287,20 @@ static bool set_sample_rate(int hz)
     ESP_LOGE(TAG, "ERROR changing S/PDIF sample rate");	  
 	return false;
   }		
-#if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(5, 0, 0)	
+
+
   if ((2 * hz )== 88200) {  // for sdk 3.3 only?
 	// Manually fix the APLL rate for 44100.
 	// See: https://github.com/espressif/esp-idf/issues/2634
 	// sdm0 = 28, sdm1 = 8, sdm2 = 5, odir = 0 -> 88199.977
-		rtc_clk_apll_enable(1, 28, 8, 5, 0);
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+	rtc_clk_apll_coeff_set(0,  28, 8, 5);
+	rtc_clk_apll_enable(1);
+#else
+	rtc_clk_apll_enable(1, 28, 8, 5, 0);
+#endif
   }	  
-#endif	  
+  
   return true;
 }
 
@@ -396,9 +386,7 @@ static void  encode_spdif(uint32_t *spdif_buffer, int16_t *buffer, size_t num_sa
 */
 static void  render_spdif_samples(const void *buf, uint32_t buf_len, pcm_format_t *buf_desc)
 {
-	//ESP_LOGI(TAG, "buf_desc: bit_depth %d format %d num_chan %d sample_rate %d", buf_desc->bit_depth, buf_desc->buffer_format, buf_desc->num_channels, buf_desc->sample_rate);
-	//    ESP_LOGV(TAG, "renderer_instance: bit_depth %d, output_mode %d", renderer_instance->bit_depth, renderer_instance->output_mode);
-	
+
 	
 	int16_t *pcm_buffer = (int16_t*)buf;
 
@@ -411,11 +399,10 @@ static void  render_spdif_samples(const void *buf, uint32_t buf_len, pcm_format_
 	}
 //
 //-------------------------
-	/*ESP_LOGV(TAG, "I2S CHECK:  buf_desc->bit_depth %d, renderer_instance->bit_depth %d, buf_desc->buffer_format %d, PCM_INTERLEAVED %d, buf_desc->num_channels %d (2), renderer_instance->output_mode %d, DAC_BUILT_IN %d ",buf_desc->bit_depth,renderer_instance->bit_depth,buf_desc->buffer_format,PCM_INTERLEAVED,buf_desc->num_channels,renderer_instance->output_mode,DAC_BUILT_IN);
-	 */
-//	uint8_t buf_bytes_per_sample = (buf_desc->bit_depth / 8);
-//	uint32_t num_samples = buf_len / buf_bytes_per_sample / buf_desc->num_channels;
-	uint32_t num_samples = buf_len / (buf_desc->bit_depth / 8) / buf_desc->num_channels;
+
+	uint8_t buf_bytes_per_sample = (buf_desc->bit_depth / 8);
+	uint32_t num_samples = buf_len / buf_bytes_per_sample / buf_desc->num_channels;
+//	uint32_t num_samples = buf_len / ((buf_desc->bit_depth / 8) )/ buf_desc->num_channels;
 
 	// aac max: #define OUTPUT_BUFFER_SIZE  (2048 * sizeof(SHORT) * 2)
 	//	mp3max:  short int short_sample_buff[2][32];
@@ -581,19 +568,10 @@ bool  init_i2s(/*renderer_config_t *config*/)
 		} else
 			ESP_LOGD(TAG, "chip rev. %d, cannot enable APLL", out_info.revision);
 	}
-    /*
-     * Allocate just enough to decode AAC+, which has huge frame sizes.
-     *
-     * Memory consumption formula:
-     * (bits_per_sample / 8) * num_chan * dma_buf_count * dma_buf_len
-     *
-     * 16 bit: 32 * 256 = 8192 bytes
-     * 32 bit: 32 * 256 = 16384 bytes
-     */
+ 
 	int bc = bigSram()?12:8;
 	int bl = bigSram()?256:128;
-//	int bcclk = sample_rate * bit_depth * 2 ;
-//	int mclk = (I2S_BUG_MAGIC / bcclk) * bcclk; // use mclk for avoiding I2S bug
+
     i2s_config_t i2s_config = {
             .mode = mode,          // Only TX
             .sample_rate = sample_rate,
@@ -612,12 +590,7 @@ bool  init_i2s(/*renderer_config_t *config*/)
 	gpio_num_t bclk;
 	gpio_num_t i2sdata;
 	gpio_get_i2s(&lrck ,&bclk ,&i2sdata );
-	if(config->output_mode == SPDIF)
-	{
-//		lrck = -1;
-//		bclk = -1;
-	}
-	
+
 	i2s_pin_config_t pin_config = 
 	{
 				.bck_io_num = bclk,
@@ -642,7 +615,6 @@ bool  init_i2s(/*renderer_config_t *config*/)
 		if (/*(lrck!=255) && (bclk!=255) && */(i2sdata!=255))
 			i2s_set_pin(config->i2s_num, &pin_config);
     }
-
 	
     if(config->output_mode == I2S_MERUS) {
         if (init_ma120(0x50))			// setup ma120x0p and initial volume
@@ -654,6 +626,5 @@ bool  init_i2s(/*renderer_config_t *config*/)
 		set_sample_rate(44100);
     }
 
-//    i2s_stop(config->i2s_num);
 	return true;
 }
