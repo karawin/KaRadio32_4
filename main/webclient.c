@@ -805,6 +805,7 @@ bool clientParseHeader(char* s)
 		if (strstr(t, "audio/mp4")) contentType = KAUDIO_MP4;
 		if (strstr(t, "audio/x-m4a")) contentType = KAUDIO_MP4;
 		if (strstr(t, "audio/mpeg")) contentType = KAUDIO_MPEG;
+		if (strstr(t, "audio/mp3")) contentType = KAUDIO_MPEG;
 		if (strstr(t, "application/ogg")) contentType = KAUDIO_OGG;
 		if (strstr(t, "audio/ogg")) contentType = KAUDIO_OGG;
 
