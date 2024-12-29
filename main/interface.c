@@ -165,7 +165,7 @@ static uint8_t ddmm;
 static uint8_t rotat;
 
 //log print
-void lkprintf(const char *format, va_list ap)
+int lkprintf(const char *format, va_list ap)
 {
   extern bool logTel;
 //print to uart0

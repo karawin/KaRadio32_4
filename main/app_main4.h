@@ -521,7 +521,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
 			vTaskDelay(1000);
 			autoPlay();
 			} // retry
-		else wifiInitDone = true;		break;
+		/*else */wifiInitDone = true;		break;
 
     case IP_EVENT_STA_GOT_IP:
 		FlashOn = 5;FlashOff = 395;
@@ -811,6 +811,7 @@ void start_network(){
 		{
 			ESP_ERROR_CHECK(esp_netif_set_ip_info(sta, &info));
 			dns_clear_servers(false);
+			//dns_clear_cache();
 			IP_SET_TYPE((( ip_addr_t* )&info.gw), IPADDR_TYPE_V4); // mandatory
 //			(( ip_addr_t* )&info.gw)->type = IPADDR_TYPE_V4;
 			dns_setserver(0,( ip_addr_t* ) &info.gw);

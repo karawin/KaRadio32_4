@@ -236,7 +236,7 @@ static void screenBottomU8g2()
 //TIME
 	if (yy != 32) // not enough room
 	{
-		char strsec[30]; 		
+		char strsec[60]; 		
 		if (getDdmm())
 			sprintf(strsec,"%02d-%02d-%04d  %02d:%02d:%02d",dt->tm_mday,dt->tm_mon+1,dt->tm_year+1900, dt->tm_hour, dt->tm_min,dt->tm_sec);
 		else 
@@ -397,7 +397,7 @@ void drawStationU8g2(uint8_t mTscreen,char* snum,char* ddot)
 void drawVolumeU8g2(uint8_t mTscreen)
 {
   char vlstr[] = {"Volume"}; 
-  char aVolume[4];
+  char aVolume[6];
 //  volume = atoi(aVolume);
   sprintf(aVolume,"%d",volume);
   
@@ -414,8 +414,8 @@ void drawVolumeU8g2(uint8_t mTscreen)
 
 void drawTimeU8g2(uint8_t mTscreen,unsigned timein)
 {
-  char strdate[23];
-  char strtime[20];
+  char strdate[46];
+  char strtime[40];
 //  printf("DRAW TIME U8G2  mtscreen : %d\n",mTscreen);
 	u8g2_ClearBuffer(&u8g2);
   u8g2_FirstPage(&u8g2);
@@ -465,7 +465,7 @@ void icy4U8g2(char* ici)
 {
 	char newstation[BUFLEN];
 	 //move the STATION2 to STATION1S
-	 if ((station!= NULL)&& (lline[STATION2] != NULL))
+	 if ((station[0]!= 0)&& (lline[STATION2] != NULL))
 	 {  strcpy(newstation,lline[STATION1]);strcat(newstation," - ");  strcat(newstation,lline[STATION2]);
 		strcpy(lline[STATION1],newstation);
 		markDrawResetU8g2(STATION1);

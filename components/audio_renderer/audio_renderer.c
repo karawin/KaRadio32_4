@@ -14,6 +14,7 @@
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
 #include "soc/rtc.h"
+#include "esp_chip_info.h"
 #include <freertos/task.h>
 #include <driver/dac.h>
 #include "driver/gpio.h"
@@ -436,10 +437,10 @@ static void  render_spdif_samples(const void *buf, uint32_t buf_len, pcm_format_
 // Decoded frame
 void IRAM_ATTR render_samples(char *buf, uint32_t buf_len, pcm_format_t *buf_desc)
 {
-    if(renderer_status != RUNNING)
+    if (renderer_status != RUNNING)
         return;
-
-	if(renderer_instance->output_mode == SPDIF)
+	else
+	if (renderer_instance->output_mode == SPDIF)
 		render_spdif_samples(buf, buf_len, buf_desc);
 	else
 		render_i2s_samples(buf, buf_len, buf_desc);

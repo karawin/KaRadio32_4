@@ -329,9 +329,10 @@ void websockethandle(int socket, wsopcode_t opcode, uint8_t * payload, size_t le
 void playStationInt(int sid) {
 	struct shoutcast_info* si;
 	char answer[24];
+
 	si = getStation(sid);
 
-	if(si != NULL &&si->domain && si->file) {
+	if(si->domain && si->file) {
 			vTaskDelay(1);
 			clientSilentDisconnect();
 			ESP_LOGV(TAG,"playstationInt: %d, new station: %s",sid,si->name);
@@ -455,9 +456,10 @@ static void handlePOST(char* name, char* data, int data_size, int conn) {
 			return;
 */			
 			char param[4];
+			*param = 0;
 			int vol;
 			if(getSParameterFromResponse(param,4,"vol=", data, data_size)) {
-				if(param == NULL) { return; }
+				if(*param == 0) { return; }
 				vol = atoi(param);
 				if(vol < 0 || vol > 254) { return; }
 				ESP_LOGD(TAG,"/sounvol vol: %s num:%d", param, vol);
@@ -543,7 +545,7 @@ static void handlePOST(char* name, char* data, int data_size, int conn) {
 			{
 				if ((atoi(id) >=0) && (atoi(id) < 255))
 				{
-					char ibuf [6];
+					char ibuf [12];
 					char *buf;
 					for(int i = 0; i<sizeof(ibuf); i++) ibuf[i] = 0;
 					struct shoutcast_info* si;
@@ -702,8 +704,8 @@ static void handlePOST(char* name, char* data, int data_size, int conn) {
 	} else if(strcmp(name, "/icy") == 0)
 	{
 		ESP_LOGV(TAG,"icy vol");
-		char currentSt[5]; sprintf(currentSt,"%d",getCurrentStation());
-		char vol[5]; sprintf(vol,"%d",(getVolume() ));
+		char currentSt[8]; sprintf(currentSt,"%d",getCurrentStation());
+		char vol[7]; sprintf(vol,"%d",(getVolume() ));
 		char treble[5]; sprintf(treble,"%d",(get_audio_output_mode() == VS1053)?VS1053_GetTreble():0);
 		char bass[5]; sprintf(bass,"%d",(get_audio_output_mode() == VS1053)?VS1053_GetBass():0);
 		char tfreq[5]; sprintf(tfreq,"%d",(get_audio_output_mode() == VS1053)?VS1053_GetTrebleFreq():0);
@@ -880,7 +882,7 @@ static void handlePOST(char* name, char* data, int data_size, int conn) {
 				infree(aip2);infree(amsk2);infree(agw2);
 			}
 
-			if ((g_device->ua!= NULL)&&(strlen(g_device->ua)==0))
+			if (/*(g_device->ua!= NULL)&&*/(strlen(g_device->ua)==0))
 			{
 				if (aua==NULL) {aua= inmalloc(12); strcpy(aua,"Karadio32/2.2");}
 			}
@@ -1150,7 +1152,7 @@ void serverclientTask(void *pvParams) {
  //   char *buf = (char *)inmalloc(reclen);
 	bool result = true;
 
-	if (buf != NULL)
+	//if (buf != NULL)
 	{
 		memset(buf,0,DRECLEN);
 		if (setsockopt (client_sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
@@ -1221,7 +1223,7 @@ void serverclientTask(void *pvParams) {
 			vTaskDelay(1);
 		}
 //		infree(buf);
-	} else  printf(strsMALLOC1,"buf");
+	} /*else  printf(strsMALLOC1,"buf");*/
 	if (result)
 	{
 		int err;

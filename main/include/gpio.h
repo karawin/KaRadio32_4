@@ -10,6 +10,7 @@
 #include "driver/spi_master.h"
 #include "esp_adc_cal.h"
 #include "app_main.h"
+#include "driver/gpio.h"
 
 #define GPIO_NONE 255
 

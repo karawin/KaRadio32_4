@@ -362,7 +362,7 @@ int websocketRead(int conn)
 {
 	char buf[MAXDATA];
 	int32_t recbytes = 0;
-	if (buf != NULL)
+//	if (buf != NULL)
 	{
 		recbytes = read(conn , buf, MAXDATA);
 		if (recbytes < 0) {

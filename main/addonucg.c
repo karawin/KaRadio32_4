@@ -807,7 +807,7 @@ void drawVolumeUcg(uint8_t mTscreen)
 {
   char vlstr[] = {"Volume"};
 //  volume = atoi(aVolume);
-  char aVolume[4];
+  char aVolume[6];
   sprintf(aVolume,"%d",volume);
     switch (mTscreen){
       case 1: 
@@ -874,8 +874,8 @@ static  void drawInfo(unsigned timein)
 
 void drawTimeUcg(uint8_t mTscreen,unsigned timein)
 {
-  char strdate[23];
-  char strtime[20];
+  char strdate[46];
+  char strtime[40];
   LANG scharset;
     sprintf(strtime,"%02d:%02d", dt->tm_hour, dt->tm_min);
     switch (mTscreen){
@@ -987,7 +987,7 @@ void icy4Ucg(char* ici)
 {
 	char newstation[BUFLEN];
 	 //move the STATION2 to STATION1S
-	 if ((station!= NULL)&& (lline[STATION2] != NULL))
+	 if ((*station!= 0)&& (lline[STATION2] != NULL))
 	 {  strcpy(newstation,lline[STATION1]);strcat(newstation," - ");  strcat(newstation,lline[STATION2]);
 		strcpy(lline[STATION1],newstation);
 		markDrawResetUcg(STATION1);

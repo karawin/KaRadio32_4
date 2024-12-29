@@ -56,7 +56,7 @@ void setHostname(char* s);
 
 
 
-void lkprintf(const char *format, va_list ap);
+int lkprintf(const char *format, va_list ap);
 	
 #endif
 		

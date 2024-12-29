@@ -15,6 +15,7 @@
 #include "esp_log.h"
 #include "soc/timer_group_struct.h"
 #include "soc/timer_group_reg.h"
+//#include "soc/wdt_periph.h"
 
 #include "common_buffer.h"
 #include "aacdecoder_lib.h"

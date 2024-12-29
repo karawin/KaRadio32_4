@@ -375,7 +375,7 @@ void drawNumber()
 // draw the station screen
 void drawStation()
 {
-  char sNum[4] ; 
+  char sNum[7] ; 
   char* ddot;
   char* ptl ;
   struct shoutcast_info* si;
@@ -570,8 +570,8 @@ void adcInit()
 		if (chanBat != GPIO_NONE)
 		{
 			isAdcBatt = true; 
-			adc1_config_channel_atten(chanBat, ADC_ATTEN_11db);
-			esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_11db, ADC_WIDTH_BIT_12, DEFAULT_VREF, &characteristics);
+			adc1_config_channel_atten(chanBat, ADC_ATTEN_DB_11);
+			esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, DEFAULT_VREF, &characteristics);
 			if (val_type == ESP_ADC_CAL_VAL_EFUSE_TP)
 			{
 				ESP_LOGI(TAG,"ADC: Characterized using Two Point Value");
